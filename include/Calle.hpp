@@ -9,13 +9,11 @@ private:
     float velocidad = 6.0f;
 
 public:
-    Calle() {
+    Calle() : calle1(textura), calle2(textura) {
         if (!textura.loadFromFile("assets/image/ground.png")) {
             throw std::runtime_error("Error al cargar assets de la calle");
         }
         textura.setRepeated(true);
-        calle1.setTexture(textura);
-        calle2.setTexture(textura);
         calle1.setPosition({0.f, 320.f});
         calle2.setPosition({800.f, 320.f});
     }

@@ -30,7 +30,9 @@ public:
     }
 
     void draw(sf::RenderWindow& window) {
-        for (auto& bache : baches) window.draw(bache);
+        for (auto& bache : baches) {
+            window.draw(bache);
+        }
     }
 
     void reset() {

@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <stdexcept>
 
 class Ciudad {
 private:
@@ -8,12 +9,11 @@ private:
     float velocidad = 1.0f; 
 
 public:
-    Ciudad() {
-        if (textura.loadFromFile("assets/image/cloud.jpg")) {
-            textura.setRepeated(true);
-            fondo1.setTexture(textura);
-            fondo2.setTexture(textura);
+    Ciudad() : fondo1(textura), fondo2(textura) {
+        if (!textura.loadFromFile("assets/image/cloud.jpg")) {
+            throw std::runtime_error("Error al cargar textura de la ciudad");
         }
+        textura.setRepeated(true);
         fondo1.setPosition({0.f, 0.f});
         fondo2.setPosition({800.f, 0.f});
     }

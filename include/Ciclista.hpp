@@ -1,17 +1,17 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <cstdlib>
+#include <stdexcept>
 
 class Ciclista {
 private:
     sf::Texture textura;
     sf::Sprite sprite;
-    float velocidad = 8.5f; // Es más rápido que los baches normales
+    float velocidad = 8.5f;
 
 public:
-    Ciclista() {
-        if (textura.loadFromFile("assets/image/ghost.png")) { // Usamos el asset existente temporalmente
-            sprite.setTexture(textura);
+    Ciclista() : sprite(textura) {
+        if (!textura.loadFromFile("assets/image/ghost.png")) {
+            throw std::runtime_error("Error al cargar textura del ciclista");
         }
         sprite.setScale({0.3f, 0.3f});
         reset();
@@ -22,7 +22,6 @@ public:
         
         sprite.move({-velocidad, 0.f});
         
-        // Si sale de pantalla, reaparece a la derecha
         if (sprite.getPosition().x < -100) {
             reset();
         }
@@ -33,8 +32,8 @@ public:
     }
 
     void reset() {
-        sprite.setPosition({1200.f, 210.f}); // Aparece lejos a la derecha
+        sprite.setPosition({1200.f, 210.f});
     }
 
-    sf::Sprite& getSprite() { return sprite; }
+    const sf::Sprite& getSprite() const { return sprite; }
 };
