@@ -9,6 +9,7 @@
 #include "Ciudad.hpp"
 #include "Bache.hpp"
 #include "Ciclista.hpp"
+#include "Abuelita.hpp" // Agregamos a la Abuelita
 
 class Juego {
 private:
@@ -18,6 +19,7 @@ private:
     Ciudad ciudad;
     Bache baches;
     Ciclista jefeCiclista;
+    Abuelita jefaAbuelita; // Declaramos a la Abuelita
 
     sf::Texture titleTexture;
     sf::Sprite titleSprite;
@@ -87,6 +89,7 @@ private:
                 jugador.reset();
                 baches.reset();
                 jefeCiclista.reset();
+                jefaAbuelita.reset();
                 metrosRecorridos = 0;
             }
         }
@@ -98,7 +101,22 @@ private:
             calle.update(gameStarted, gamePaused);
             ciudad.update(gameStarted, gamePaused);
             baches.update(gameStarted, gamePaused);
-            jefeCiclista.update(gameStarted, gamePaused);
+
+            // SISTEMA DE FASES DEL JUEGO
+            if (metrosRecorridos < 30) {
+                // Fase 1: Abuelita
+                jefaAbuelita.update(gameStarted, gamePaused);
+                if (jugador.checkCollision(jefaAbuelita.getSprite())) {
+                    gamePaused = true; // Chocaste con la abuelita
+                }
+            } else {
+                // Fase 2: Ciclista Furioso
+                jefaAbuelita.esconder(); // Quitamos a la abuelita
+                jefeCiclista.update(gameStarted, gamePaused);
+                if (jugador.checkCollision(jefeCiclista.getSprite())) {
+                    gamePaused = true; // Chocaste con el ciclista
+                }
+            }
 
             distanciaText.setString("Distancia: " + std::to_string(metrosRecorridos) + "m");
             bateriaText.setString("Bateria: " + std::to_string(static_cast<int>(jugador.getBateria())) + "%");
@@ -113,10 +131,6 @@ private:
                 if (jugador.checkCollision(bache)) {
                     gamePaused = true;
                 }
-            }
-
-            if (jugador.checkCollision(jefeCiclista.getSprite())) {
-                gamePaused = true;
             }
 
             if (jugador.getBateria() <= 0) {
@@ -138,7 +152,14 @@ private:
             window.draw(titleSprite);
         } else {
             ciudad.draw(window);
-            jefeCiclista.draw(window);
+            
+            // Dibujar al jefe correcto según la fase
+            if (metrosRecorridos < 30) {
+                jefaAbuelita.draw(window);
+            } else {
+                jefeCiclista.draw(window);
+            }
+            
             calle.draw(window);
             baches.draw(window);
             jugador.draw(window);

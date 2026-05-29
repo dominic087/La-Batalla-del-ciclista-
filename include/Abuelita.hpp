@@ -2,18 +2,19 @@
 #include <SFML/Graphics.hpp>
 #include <stdexcept>
 
-class Ciclista {
+class Abuelita {
 private:
     sf::Texture textura;
     sf::Sprite sprite;
-    float velocidad = 8.5f;
+    float velocidad = 4.0f; // Más lenta que el ciclista, pero peligrosa
 
 public:
-    Ciclista() : sprite(textura) {
-        if (!textura.loadFromFile("assets/image/ghost.png")) {
-            throw std::runtime_error("Error al cargar textura del ciclista");
+    Abuelita() : sprite(textura) {
+        if (!textura.loadFromFile("assets/image/abuelita.png")) {
+            throw std::runtime_error("Error al cargar textura de la abuelita");
         }
-        sprite.setScale({0.3f, 0.3f});
+        // Ajusta este 0.25f si la imagen sale muy grande o muy chica
+        sprite.setScale({0.25f, 0.25f}); 
         reset();
     }
 
@@ -32,11 +33,12 @@ public:
     }
 
     void reset() {
-        sprite.setPosition({1200.f, 210.f});
+        // Aparece a la derecha, un poco separada de los baches
+        sprite.setPosition({1100.f, 210.f}); 
     }
-    
+
     void esconder() {
-        sprite.setPosition({-1000.f, 210.f}); 
+        sprite.setPosition({-1000.f, 210.f}); // La sacamos de la pantalla
     }
 
     const sf::Sprite& getSprite() const { return sprite; }
