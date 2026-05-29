@@ -47,7 +47,7 @@ public:
             titleSprite.setScale({0.65f, 0.65f});
         }
         
-       if (backgroundMusic.openFromFile("assets/audio/melody.mp3")) {
+       if (backgroundMusic.openFromFile("assets/audio/melody.ogg")) {
             backgroundMusic.setLoopPoints({sf::milliseconds(500), sf::seconds(2000)});
             backgroundMusic.play();
         }
