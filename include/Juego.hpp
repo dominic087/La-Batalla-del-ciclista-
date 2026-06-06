@@ -42,7 +42,7 @@ public:
     {
         window.setFramerateLimit(60);
         
-        if (titleTexture.loadFromFile("assets/image/title.jpg")) {
+        if (titleTexture.loadFromFile("assets/image/title.png")) {
             titleSprite.setPosition({-20.f, 0.f});
             titleSprite.setScale({0.65f, 0.65f});
         }

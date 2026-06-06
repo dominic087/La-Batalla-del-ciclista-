@@ -22,7 +22,7 @@ int main() {
 
     
     sf::Texture titleTexture;
-    if (!titleTexture.loadFromFile("assets/image/title.jpg")) {
+    if (!titleTexture.loadFromFile("assets/image/title.png")) {
         return -1; 
     }
     sf::Sprite titleSprite(titleTexture);
@@ -143,3 +143,4 @@ int main() {
 
     return 0;
 }
+

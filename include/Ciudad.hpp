@@ -10,7 +10,7 @@ private:
 
 public:
     Ciudad() : fondo1(textura), fondo2(textura) {
-        if (!textura.loadFromFile("assets/image/cloud.jpg")) {
+        if (!textura.loadFromFile("assets/image/cloud.png")) {
             throw std::runtime_error("Error al cargar textura de la ciudad");
         }
         textura.setRepeated(true);
