@@ -26,8 +26,15 @@ int main() {
         return -1; 
     }
     sf::Sprite titleSprite(titleTexture);
-    titleSprite.setPosition({-20.f, 0.f});
-    titleSprite.setScale({0.65f, 0.65f});
+    const float maxTitleWidth = 600.f;
+    const float maxTitleHeight = 150.f;
+    const sf::Vector2u titleSize = titleTexture.getSize();
+    float scaleX = maxTitleWidth / static_cast<float>(titleSize.x);
+    float scaleY = maxTitleHeight / static_cast<float>(titleSize.y);
+    float titleScale = scaleX < scaleY ? scaleX : scaleY;
+    if (titleScale > 1.f) titleScale = 1.f;
+    titleSprite.setScale({titleScale, titleScale});
+    titleSprite.setPosition(sf::Vector2f((800.f - titleSprite.getGlobalBounds().size.x) / 2.f, 20.f));
 
     
     sf::Music backgroundMusic;

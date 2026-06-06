@@ -42,9 +42,13 @@ public:
     {
         window.setFramerateLimit(60);
         
-        if (titleTexture.loadFromFile("assets/image/title.png")) {
-            titleSprite.setPosition({-20.f, 0.f});
-            titleSprite.setScale({0.65f, 0.65f});
+       if (titleTexture.loadFromFile("assets/image/title.jpg")) {
+            // Obtenemos el tamaño real de tu imagen generada
+            sf::Vector2u size = titleTexture.getSize();
+            float scaleX = 800.f / size.x;
+            float scaleY = 400.f / size.y;
+            titleSprite.setScale({scaleX, scaleY});
+            titleSprite.setPosition({0.f, 0.f});
         }
         
        if (backgroundMusic.openFromFile("assets/audio/melody.ogg")) {
