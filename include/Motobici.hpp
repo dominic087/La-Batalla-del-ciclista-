@@ -18,7 +18,7 @@ public:
         if (!textura.loadFromFile("assets/image/dinosaur/dino 1.png")) {
             throw std::runtime_error("Error al cargar asset de la motobici");
         }
-        sprite.setScale({1.0f, 1.0f});
+        sprite.setScale({0.8f, 0.8f});
         sprite.setPosition({20.f, originalY});
     }
 
