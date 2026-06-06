@@ -31,7 +31,7 @@ int main() {
 
     
     sf::Music backgroundMusic;
-    if (!backgroundMusic.openFromFile("assets/audio/melody.mp3")) {
+    if (!backgroundMusic.openFromFile("assets/audio/melody.ogg")) {
         return -1;
     }
     backgroundMusic.setLoopPoints({sf::milliseconds(500), sf::seconds(2000)});
@@ -143,4 +143,3 @@ int main() {
 
     return 0;
 }
-
