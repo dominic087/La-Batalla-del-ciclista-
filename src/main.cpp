@@ -26,15 +26,14 @@ int main() {
         return -1; 
     }
     sf::Sprite titleSprite(titleTexture);
-    const float maxTitleWidth = 600.f;
-    const float maxTitleHeight = 150.f;
+    const float maxTitleWidth = 1600.f;
+    const float maxTitleHeight = 400.f;
     const sf::Vector2u titleSize = titleTexture.getSize();
     float scaleX = maxTitleWidth / static_cast<float>(titleSize.x);
     float scaleY = maxTitleHeight / static_cast<float>(titleSize.y);
     float titleScale = scaleX < scaleY ? scaleX : scaleY;
-    if (titleScale > 1.f) titleScale = 1.f;
     titleSprite.setScale({titleScale, titleScale});
-    titleSprite.setPosition(sf::Vector2f((800.f - titleSprite.getGlobalBounds().size.x) / 2.f, 20.f));
+    titleSprite.setPosition(sf::Vector2f((800.f - titleSprite.getGlobalBounds().size.x) / 2.f, (400.f - titleSprite.getGlobalBounds().size.y) / 2.f));
 
     
     sf::Music backgroundMusic;
@@ -60,6 +59,15 @@ int main() {
     bateriaText.setFillColor(sf::Color::Green);
     bateriaText.setPosition({550.f, 10.f});
 
+    sf::Text startText(font);
+    startText.setString("Press SPACE to start");
+    startText.setCharacterSize(20);
+    startText.setFillColor(sf::Color::White);
+    startText.setPosition(sf::Vector2f(
+        (800.f - startText.getLocalBounds().size.x) / 2.f,
+        titleSprite.getPosition().y + titleSprite.getGlobalBounds().size.y + 25.f
+    ));
+
     
     int metrosRecorridos = 0;
     int scoreTick = 0;
@@ -80,6 +88,7 @@ int main() {
         if (!gameStarted) {
             window.clear(sf::Color(135, 206, 235));
             window.draw(titleSprite);
+            window.draw(startText);
             window.display();
             
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {

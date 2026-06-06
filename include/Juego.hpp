@@ -45,8 +45,8 @@ public:
        if (titleTexture.loadFromFile("assets/image/title.jpg")) {
             // Obtenemos el tamaño real de tu imagen generada
             sf::Vector2u size = titleTexture.getSize();
-            float scaleX = 800.f / size.x;
-            float scaleY = 400.f / size.y;
+            float scaleX = 1200.f / size.x;
+            float scaleY = 600.f / size.y;
             titleSprite.setScale({scaleX, scaleY});
             titleSprite.setPosition({0.f, 0.f});
         }
