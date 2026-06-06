@@ -14,15 +14,17 @@ public:
             throw std::runtime_error("Error al cargar assets de la calle");
         }
         textura.setRepeated(true);
-        const float roadScale = 0.8f;
-        int groundHeight = static_cast<int>(textura.getSize().y);
-        calle1.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), sf::Vector2i(800, groundHeight)));
-        calle2.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), sf::Vector2i(800, groundHeight)));
+        const int groundRectHeight = 100;
+        const sf::Vector2u textureSize = textura.getSize();
+        float roadScale = 800.f / static_cast<float>(textureSize.x);
+        int textureHeight = static_cast<int>(textureSize.y);
+        calle1.setTextureRect(sf::IntRect(sf::Vector2i(0, textureHeight - groundRectHeight), sf::Vector2i(textureSize.x, groundRectHeight)));
+        calle2.setTextureRect(sf::IntRect(sf::Vector2i(0, textureHeight - groundRectHeight), sf::Vector2i(textureSize.x, groundRectHeight)));
         calle1.setScale({roadScale, roadScale});
         calle2.setScale({roadScale, roadScale});
-        float groundY = 400.f - static_cast<float>(groundHeight) * roadScale;
+        float groundY = 400.f - static_cast<float>(groundRectHeight) * roadScale;
         calle1.setPosition({0.f, groundY});
-        calle2.setPosition({800.f * roadScale, groundY});
+        calle2.setPosition({textureSize.x * roadScale, groundY});
     }
 
     void update(bool gameStarted, bool gamePaused) {
@@ -31,9 +33,9 @@ public:
         calle1.move({-velocidad, 0.f});
         calle2.move({-velocidad, 0.f});
         
-        float roadWidth = 800.f * calle1.getScale().x;
-        if (calle1.getPosition().x <= -roadWidth) calle1.setPosition({roadWidth, calle1.getPosition().y});
-        if (calle2.getPosition().x <= -roadWidth) calle2.setPosition({roadWidth, calle2.getPosition().y});
+        float spriteWidth = calle1.getGlobalBounds().size.x;
+        if (calle1.getPosition().x <= -spriteWidth) calle1.setPosition({calle2.getPosition().x + spriteWidth, calle1.getPosition().y});
+        if (calle2.getPosition().x <= -spriteWidth) calle2.setPosition({calle1.getPosition().x + spriteWidth, calle2.getPosition().y});
     }
 
     void draw(sf::RenderWindow& window) {
