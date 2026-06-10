@@ -8,6 +8,7 @@
 #include "Ciudad.hpp"
 #include "Bache.hpp"
 #include "Enemigos.hpp"
+#include "PowerUps.hpp"
 
 
 int main() {
@@ -21,6 +22,7 @@ int main() {
     Ciudad ciudad;
     Bache baches;
     Enemigos enemigos;
+    PowerUps powerUps;
 
     
     sf::Texture titleTexture;
@@ -57,6 +59,19 @@ int main() {
     bateriaText.setCharacterSize(22);
     bateriaText.setFillColor(sf::Color::Green);
     bateriaText.setPosition({550.f, 10.f});
+
+    sf::Text speedText(font);
+    speedText.setCharacterSize(20);
+    speedText.setFillColor(sf::Color::White);
+    speedText.setPosition({550.f, 38.f});
+
+    sf::RectangleShape speedBarBg({160.f, 18.f});
+    speedBarBg.setFillColor(sf::Color(50, 50, 50, 200));
+    speedBarBg.setPosition({550.f, 65.f});
+
+    sf::RectangleShape speedBarFill({0.f, 18.f});
+    speedBarFill.setFillColor(sf::Color(0, 200, 255, 200));
+    speedBarFill.setPosition(speedBarBg.getPosition());
 
     sf::Text startText(font);
     startText.setString("Press SPACE to start");
@@ -110,10 +125,12 @@ int main() {
             
             // Actualizar posiciones y físicas
             jugador.update(gameStarted, gamePaused);
+            float speedFactor = jugador.getSpeedFactor();
             calle.update(gameStarted, gamePaused);
             ciudad.update(gameStarted, gamePaused);
-            baches.update(gameStarted, gamePaused);
-            enemigos.update(gameStarted, gamePaused, metrosRecorridos);
+            baches.update(gameStarted, gamePaused, speedFactor);
+            enemigos.update(gameStarted, gamePaused, metrosRecorridos, speedFactor);
+            powerUps.update(gameStarted, gamePaused, metrosRecorridos, speedFactor);
 
             
             distanciaText.setString("Distancia: " + std::to_string(metrosRecorridos) + "m");
@@ -126,20 +143,38 @@ int main() {
             }
 
             // Detección de colisiones contra los baches
+            static int collisionCooldown = 0;
+            bool collided = false;
             for (const auto& bache : baches.getObstacles()) {
                 if (jugador.checkCollision(bache)) {
-                    gamePaused = true; 
+                    collided = true;
                 }
             }
 
             // Detección de colisiones contra los enemigos
             for (const auto& enemy : enemigos.getEnemies()) {
                 if (jugador.checkCollision(enemy)) {
-                    gamePaused = true;
+                    collided = true;
                 }
             }
 
-            
+            PowerUpType collectedType;
+            if (powerUps.collect(jugador.getGlobalBounds(), collectedType)) {
+                if (collectedType == PowerUpType::Battery) {
+                    jugador.applyBatteryPickup(15.0f);
+                } else {
+                    jugador.applySpeedPickup(8.0f, 360);
+                }
+            }
+
+            if (collided && collisionCooldown == 0) {
+                jugador.applyCollisionPenalty();
+                collisionCooldown = 30; // impedir múltiples penalizaciones instantáneas
+            }
+            if (collisionCooldown > 0) {
+                collisionCooldown--;
+            }
+
             if (jugador.getBateria() <= 0) {
                 gamePaused = true;
             }
@@ -158,10 +193,18 @@ int main() {
         calle.draw(window);        
         baches.draw(window);      
         enemigos.draw(window);
+        powerUps.draw(window);
         jugador.draw(window);      
         
+        speedText.setString("Speed: " + std::to_string(static_cast<int>(jugador.getSpeedKmh())) + " km/h");
+        float speedRatio = jugador.getSpeedKmh() / 35.f;
+        speedBarFill.setSize({std::max(0.f, std::min(160.f, 160.f * speedRatio)), 18.f});
+
         window.draw(distanciaText);
         window.draw(bateriaText);
+        window.draw(speedText);
+        window.draw(speedBarBg);
+        window.draw(speedBarFill);
 
         window.display();
     }

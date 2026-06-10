@@ -35,11 +35,11 @@ public:
         reset();
     }
 
-    void update(bool gameStarted, bool gamePaused) {
+    void update(bool gameStarted, bool gamePaused, float speedFactor) {
         if (!gameStarted || gamePaused) return;
         
         for (auto& bache : baches) {
-            bache.move({-velocidad, 0.f});
+            bache.move({-velocidad * speedFactor, 0.f});
             if (bache.getPosition().x < -50) {
                 bache.setPosition({900.f + (rand() % 400), obstacleY});
             }

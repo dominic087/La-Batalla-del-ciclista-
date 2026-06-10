@@ -42,7 +42,7 @@ public:
         reset();
     }
 
-    void update(bool gameStarted, bool gamePaused, int distancia) {
+    void update(bool gameStarted, bool gamePaused, int distancia, float speedFactor) {
         if (!gameStarted || gamePaused) return;
 
         // Abuelita aparece a los 300 metros
@@ -64,7 +64,7 @@ public:
         }
 
         for (auto& enemy : enemigos) {
-            enemy.move({-velocidad, 0.f});
+            enemy.move({-velocidad * speedFactor, 0.f});
         }
     }
 
