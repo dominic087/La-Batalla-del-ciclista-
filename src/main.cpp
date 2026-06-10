@@ -7,6 +7,7 @@
 #include "Calle.hpp"
 #include "Ciudad.hpp"
 #include "Bache.hpp"
+#include "Enemigos.hpp"
 
 
 int main() {
@@ -19,6 +20,7 @@ int main() {
     Calle calle;
     Ciudad ciudad;
     Bache baches;
+    Enemigos enemigos;
 
     
     sf::Texture titleTexture;
@@ -99,6 +101,7 @@ int main() {
             gamePaused = false;
             jugador.reset();
             baches.reset();
+            enemigos.reset();
             metrosRecorridos = 0;
         }
 
@@ -110,6 +113,7 @@ int main() {
             calle.update(gameStarted, gamePaused);
             ciudad.update(gameStarted, gamePaused);
             baches.update(gameStarted, gamePaused);
+            enemigos.update(gameStarted, gamePaused);
 
             
             distanciaText.setString("Distancia: " + std::to_string(metrosRecorridos) + "m");
@@ -125,6 +129,13 @@ int main() {
             for (const auto& bache : baches.getObstacles()) {
                 if (jugador.checkCollision(bache)) {
                     gamePaused = true; 
+                }
+            }
+
+            // Detección de colisiones contra los enemigos
+            for (const auto& enemy : enemigos.getEnemies()) {
+                if (jugador.checkCollision(enemy)) {
+                    gamePaused = true;
                 }
             }
 
@@ -146,6 +157,7 @@ int main() {
         ciudad.draw(window);       
         calle.draw(window);        
         baches.draw(window);      
+        enemigos.draw(window);
         jugador.draw(window);      
         
         window.draw(distanciaText);

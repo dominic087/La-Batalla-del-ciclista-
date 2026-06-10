@@ -13,12 +13,23 @@ private:
     float originalY = 200.f;
 
 public:
-    // Lista de inicialización obligatoria para SFML 3
     Motobici() : sprite(textura) {
         if (!textura.loadFromFile("assets/image/dinosaur/dino 1.png")) {
             throw std::runtime_error("Error al cargar asset de la motobici");
         }
+
+        sprite = sf::Sprite(textura);
         sprite.setScale({0.8f, 0.8f});
+
+        sf::Texture groundTexture;
+        if (!groundTexture.loadFromFile("assets/image/ground.png")) {
+            throw std::runtime_error("Error al cargar textura del piso para calcular posición del personaje");
+        }
+        const int groundRectHeight = 100;
+        float roadScale = 800.f / static_cast<float>(groundTexture.getSize().x);
+        float groundY = 400.f - static_cast<float>(groundRectHeight) * roadScale;
+
+        originalY = groundY - sprite.getGlobalBounds().size.y;
         sprite.setPosition({20.f, originalY});
     }
 

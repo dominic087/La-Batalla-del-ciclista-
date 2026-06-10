@@ -54,10 +54,10 @@ public:
 
     void reset() {
         baches.clear();
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 1; ++i) {
             sf::Sprite s(textura);
-            s.setScale({0.25f, 0.25f});
-            s.setPosition({800.f + (i * 400.f), obstacleY});
+            s.setScale({0.18f, 0.18f});
+            s.setPosition({800.f + (i * 700.f), obstacleY});
             baches.push_back(s);
         }
     }
