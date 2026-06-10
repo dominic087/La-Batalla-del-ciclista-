@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <algorithm>
 #include <vector>
 #include <cstdlib>
 #include <stdexcept>
@@ -10,6 +11,7 @@ private:
     std::vector<sf::Sprite> baches;
     float velocidad = 6.0f;
     float obstacleY = 0.f;
+    int respawnCount = 0;
 
 public:
     Bache() {
@@ -41,7 +43,15 @@ public:
         for (auto& bache : baches) {
             bache.move({-velocidad * speedFactor, 0.f});
             if (bache.getPosition().x < -50) {
-                bache.setPosition({900.f + (rand() % 400), obstacleY});
+                float maxX = 0.f;
+                for (const auto& other : baches) {
+                    if (&other != &bache) {
+                        maxX = std::max(maxX, other.getPosition().x);
+                    }
+                }
+                float nextX = std::max(900.f + static_cast<float>(rand() % 400), maxX + 350.f);
+                bache.setPosition({nextX, obstacleY});
+                respawnCount += 1;
             }
         }
     }
@@ -54,12 +64,19 @@ public:
 
     void reset() {
         baches.clear();
-        for (int i = 0; i < 1; ++i) {
+        respawnCount = 0;
+        for (int i = 0; i < 2; ++i) {
             sf::Sprite s(textura);
             s.setScale({0.18f, 0.18f});
-            s.setPosition({800.f + (i * 700.f), obstacleY});
+            s.setPosition({800.f + (i * 450.f), obstacleY});
             baches.push_back(s);
         }
+    }
+
+    int consumeRespawnCount() {
+        int count = respawnCount;
+        respawnCount = 0;
+        return count;
     }
 
     const std::vector<sf::Sprite>& getObstacles() const { return baches; }

@@ -33,10 +33,11 @@ public:
         float roadScale = 800.f / static_cast<float>(groundTexture.getSize().x);
         float groundY = 400.f - static_cast<float>(groundRectHeight) * roadScale;
 
-        // Poner la base del sprite sobre la calle
+        // Poner la base del sprite sobre la calle, con ajuste aún mayor hacia arriba
         float spriteHeight = sprite.getGlobalBounds().size.y;
         sprite.setOrigin({0.f, spriteHeight});
-        originalY = groundY;
+        const float bodyOffset = 42.f; // eleva el personaje para mostrar el cuerpo completo
+        originalY = groundY - bodyOffset;
         sprite.setPosition({20.f, originalY});
     }
 

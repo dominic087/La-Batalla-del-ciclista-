@@ -129,6 +129,10 @@ int main() {
             calle.update(gameStarted, gamePaused);
             ciudad.update(gameStarted, gamePaused);
             baches.update(gameStarted, gamePaused, speedFactor);
+            int respawnedObstacles = baches.consumeRespawnCount();
+            for (int i = 0; i < respawnedObstacles; ++i) {
+                powerUps.notifyObstacleAppeared();
+            }
             enemigos.update(gameStarted, gamePaused, metrosRecorridos, speedFactor);
             powerUps.update(gameStarted, gamePaused, metrosRecorridos, speedFactor);
 
