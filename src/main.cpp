@@ -113,7 +113,7 @@ int main() {
             calle.update(gameStarted, gamePaused);
             ciudad.update(gameStarted, gamePaused);
             baches.update(gameStarted, gamePaused);
-            enemigos.update(gameStarted, gamePaused);
+            enemigos.update(gameStarted, gamePaused, metrosRecorridos);
 
             
             distanciaText.setString("Distancia: " + std::to_string(metrosRecorridos) + "m");

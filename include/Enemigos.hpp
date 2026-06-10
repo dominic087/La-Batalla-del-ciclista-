@@ -11,6 +11,8 @@ private:
     std::vector<sf::Sprite> enemigos;
     float velocidad = 4.0f;
     float enemyY = 0.f;
+    bool abuelitaAparecio = false;
+    bool ciclstaAparecio = false;
 
 public:
     Enemigos() {
@@ -33,27 +35,36 @@ public:
         float roadScale = 800.f / static_cast<float>(groundSize.x);
         float groundY = 400.f - static_cast<float>(groundRectHeight) * roadScale;
 
-        // Los enemigos deben estar justo en el TOP del piso
-        enemyY = groundY;
+        // Los enemigos deben estar centrados sobre la calle
+        // Calcular una posición que los centre entre el espacio disponible
+        enemyY = groundY - 80.f;  // Posición centrada sobre la calle pero visible
 
         reset();
     }
 
-    void update(bool gameStarted, bool gamePaused) {
+    void update(bool gameStarted, bool gamePaused, int distancia) {
         if (!gameStarted || gamePaused) return;
+
+        // Abuelita aparece a los 300 metros
+        if (!abuelitaAparecio && distancia >= 300) {
+            sf::Sprite s(texturaAbuelita);
+            s.setScale({0.35f, 0.35f});
+            s.setPosition({800.f, enemyY});
+            enemigos.push_back(s);
+            abuelitaAparecio = true;
+        }
+
+        // Ciclista (ghost) aparece a los 700 metros
+        if (!ciclstaAparecio && distancia >= 700) {
+            sf::Sprite s(texturaGhost);
+            s.setScale({0.35f, 0.35f});
+            s.setPosition({800.f, enemyY});
+            enemigos.push_back(s);
+            ciclstaAparecio = true;
+        }
 
         for (auto& enemy : enemigos) {
             enemy.move({-velocidad, 0.f});
-            if (enemy.getPosition().x < -100) {
-                // Alternar entre abuelita y fantasma
-                bool useAbuelita = (rand() % 2 == 0);
-                if (useAbuelita) {
-                    enemy.setTexture(texturaAbuelita);
-                } else {
-                    enemy.setTexture(texturaGhost);
-                }
-                enemy.setPosition({900.f + (rand() % 300), enemyY});
-            }
         }
     }
 
@@ -65,13 +76,8 @@ public:
 
     void reset() {
         enemigos.clear();
-        for (int i = 0; i < 2; ++i) {
-            bool useAbuelita = (i % 2 == 0);
-            sf::Sprite s(useAbuelita ? texturaAbuelita : texturaGhost);
-            s.setScale({0.15f, 0.15f});
-            s.setPosition({800.f + (i * 600.f), enemyY});
-            enemigos.push_back(s);
-        }
+        abuelitaAparecio = false;
+        ciclstaAparecio = false;
     }
 
     const std::vector<sf::Sprite>& getEnemies() const { return enemigos; }

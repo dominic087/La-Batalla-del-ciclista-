@@ -29,7 +29,8 @@ public:
         float roadScale = 800.f / static_cast<float>(groundTexture.getSize().x);
         float groundY = 400.f - static_cast<float>(groundRectHeight) * roadScale;
 
-        originalY = groundY - sprite.getGlobalBounds().size.y;
+        // El personaje debe estar caminando sobre la calle
+        originalY = groundY - 60.f;
         sprite.setPosition({20.f, originalY});
     }
 
