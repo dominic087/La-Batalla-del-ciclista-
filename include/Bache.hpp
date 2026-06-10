@@ -12,6 +12,9 @@ private:
     float velocidad = 6.0f;
     float obstacleY = 0.f;
     int respawnCount = 0;
+    std::vector<float> respawnPositions;
+    static constexpr float pixelsPerMeter = 4.f;
+    static constexpr float minObstacleDistance = 1.f * pixelsPerMeter;
 
 public:
     Bache() {
@@ -43,14 +46,9 @@ public:
         for (auto& bache : baches) {
             bache.move({-velocidad * speedFactor, 0.f});
             if (bache.getPosition().x < -50) {
-                float maxX = 0.f;
-                for (const auto& other : baches) {
-                    if (&other != &bache) {
-                        maxX = std::max(maxX, other.getPosition().x);
-                    }
-                }
-                float nextX = std::max(900.f + static_cast<float>(rand() % 400), maxX + 350.f);
+                float nextX = 900.f + minObstacleDistance + static_cast<float>(rand() % 100);
                 bache.setPosition({nextX, obstacleY});
+                respawnPositions.push_back(nextX);
                 respawnCount += 1;
             }
         }
@@ -65,18 +63,23 @@ public:
     void reset() {
         baches.clear();
         respawnCount = 0;
-        for (int i = 0; i < 2; ++i) {
-            sf::Sprite s(textura);
-            s.setScale({0.18f, 0.18f});
-            s.setPosition({800.f + (i * 450.f), obstacleY});
-            baches.push_back(s);
-        }
+        respawnPositions.clear();
+        sf::Sprite s(textura);
+        s.setScale({0.18f, 0.18f});
+        s.setPosition({800.f, obstacleY});
+        baches.push_back(s);
     }
 
     int consumeRespawnCount() {
         int count = respawnCount;
         respawnCount = 0;
         return count;
+    }
+
+    std::vector<float> consumeRespawnPositions() {
+        std::vector<float> positions = std::move(respawnPositions);
+        respawnPositions.clear();
+        return positions;
     }
 
     const std::vector<sf::Sprite>& getObstacles() const { return baches; }

@@ -22,8 +22,10 @@ private:
     float groundY = 0.f;
     int obstacleCounter = 0;
     bool nextIsBattery = true;
-    const int batteryThreshold = 3;
+    const int batteryThreshold = 2;
     const int speedThreshold = 2;
+    static constexpr float pixelsPerMeter = 36.f;
+    static constexpr float powerUpOffsetMeters = 10.f;
 
 public:
     PowerUps() {
@@ -57,14 +59,14 @@ public:
         }), items.end());
     }
 
-    void notifyObstacleAppeared() {
+    void notifyObstacleAppeared(float obstacleX) {
         obstacleCounter += 1;
         if (nextIsBattery && obstacleCounter >= batteryThreshold) {
-            spawnPowerUp(PowerUpType::Battery);
+            spawnPowerUp(PowerUpType::Battery, obstacleX + powerUpOffsetMeters * pixelsPerMeter);
             obstacleCounter = 0;
             nextIsBattery = false;
         } else if (!nextIsBattery && obstacleCounter >= speedThreshold) {
-            spawnPowerUp(PowerUpType::Speed);
+            spawnPowerUp(PowerUpType::Speed, obstacleX + powerUpOffsetMeters * pixelsPerMeter);
             obstacleCounter = 0;
             nextIsBattery = true;
         }
@@ -94,17 +96,17 @@ public:
     }
 
 private:
-    void spawnPowerUp(PowerUpType type) {
+    void spawnPowerUp(PowerUpType type, float spawnX) {
         const sf::Texture& texture = (type == PowerUpType::Battery ? batteryTexture : speedTexture);
         PowerUp powerUp(type, texture);
 
         const sf::FloatRect textureBounds = powerUp.sprite.getGlobalBounds();
-        float desiredSize = 40.f;
+        float desiredSize = 60.f; // power-ups más visibles
         float scale = desiredSize / std::max(textureBounds.size.x, textureBounds.size.y);
         powerUp.sprite.setScale({scale, scale});
         powerUp.sprite.setOrigin({powerUp.sprite.getGlobalBounds().size.x / 2.f, powerUp.sprite.getGlobalBounds().size.y / 2.f});
         float spawnY = groundY - powerUp.sprite.getGlobalBounds().size.y / 2.f - 8.f;
-        powerUp.sprite.setPosition({800.f, spawnY});
+        powerUp.sprite.setPosition({spawnX, spawnY});
 
         items.push_back(std::move(powerUp));
     }
