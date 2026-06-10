@@ -23,7 +23,7 @@ public:
         }
 
         sprite = sf::Sprite(textura);
-        sprite.setScale({0.8f, 0.8f});
+        sprite.setScale({0.35f, 0.35f});
 
         sf::Texture groundTexture;
         if (!groundTexture.loadFromFile("assets/image/ground.png")) {
@@ -33,8 +33,10 @@ public:
         float roadScale = 800.f / static_cast<float>(groundTexture.getSize().x);
         float groundY = 400.f - static_cast<float>(groundRectHeight) * roadScale;
 
-        // El personaje debe estar caminando sobre la calle
-        originalY = groundY - 60.f;
+        // Poner la base del sprite sobre la calle
+        float spriteHeight = sprite.getGlobalBounds().size.y;
+        sprite.setOrigin({0.f, spriteHeight});
+        originalY = groundY;
         sprite.setPosition({20.f, originalY});
     }
 
