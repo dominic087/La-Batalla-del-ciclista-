@@ -45,8 +45,8 @@ public:
     void update(bool gameStarted, bool gamePaused, int distancia, float speedFactor) {
         if (!gameStarted || gamePaused) return;
 
-        // Abuelita aparece a los 300 metros
-        if (!abuelitaAparecio && distancia >= 300) {
+        // Abuelita aparece a los 370 metros
+        if (!abuelitaAparecio && distancia >= 370) {
             sf::Sprite s(texturaAbuelita);
             s.setScale({0.35f, 0.35f});
             s.setPosition({800.f, enemyY});
@@ -54,8 +54,8 @@ public:
             abuelitaAparecio = true;
         }
 
-        // Ciclista (ghost) aparece a los 700 metros
-        if (!ciclstaAparecio && distancia >= 700) {
+        // Ciclista (ghost) aparece a los 770 metros
+        if (!ciclstaAparecio && distancia >= 770) {
             sf::Sprite s(texturaGhost);
             s.setScale({0.35f, 0.35f});
             s.setPosition({800.f, enemyY});
