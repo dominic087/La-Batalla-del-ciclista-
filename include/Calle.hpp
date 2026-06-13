@@ -27,11 +27,11 @@ public:
         calle2.setPosition({textureSize.x * roadScale, groundY});
     }
 
-    void update(bool gameStarted, bool gamePaused) {
+    void update(bool gameStarted, bool gamePaused, float speedFactor) {
         if (!gameStarted || gamePaused) return;
         
-        calle1.move({-velocidad, 0.f});
-        calle2.move({-velocidad, 0.f});
+        calle1.move({-velocidad * speedFactor, 0.f});
+        calle2.move({-velocidad * speedFactor, 0.f});
         
         float spriteWidth = calle1.getGlobalBounds().size.x;
         if (calle1.getPosition().x <= -spriteWidth) calle1.setPosition({calle2.getPosition().x + spriteWidth, calle1.getPosition().y});

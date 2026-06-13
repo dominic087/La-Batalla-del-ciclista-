@@ -22,18 +22,21 @@ public:
         fondo1.setScale({cloudScale, cloudScale});
         fondo2.setScale({cloudScale, cloudScale});
         fondo1.setPosition({0.f, 0.f});
-        fondo2.setPosition({textureSize.x * cloudScale, 0.f});
+        // Usar el ancho real del sprite escalado para posicionar y hacer el wrap sin rayas
+        float spriteWidth = fondo1.getGlobalBounds().size.x;
+        fondo2.setPosition({spriteWidth, 0.f});
     }
 
-    void update(bool gameStarted, bool gamePaused) {
+    void update(bool gameStarted, bool gamePaused, float speedFactor) {
         if (!gameStarted || gamePaused) return;
         
-        fondo1.move({-velocidad, 0.f});
-        fondo2.move({-velocidad, 0.f});
+        fondo1.move({-velocidad * speedFactor, 0.f});
+        fondo2.move({-velocidad * speedFactor, 0.f});
 
-        const float cityWidth = 800.f;
-        if (fondo1.getPosition().x <= -cityWidth) fondo1.setPosition({cityWidth, 0.f});
-        if (fondo2.getPosition().x <= -cityWidth) fondo2.setPosition({cityWidth, 0.f});
+        // Usar el ancho real del sprite escalado para el wrap; evita discontinuidades visuales
+        float spriteWidth = fondo1.getGlobalBounds().size.x;
+        if (fondo1.getPosition().x <= -spriteWidth) fondo1.setPosition({fondo2.getPosition().x + spriteWidth, 0.f});
+        if (fondo2.getPosition().x <= -spriteWidth) fondo2.setPosition({fondo1.getPosition().x + spriteWidth, 0.f});
     }
 
     void draw(sf::RenderWindow& window) {

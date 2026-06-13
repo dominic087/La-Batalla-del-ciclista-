@@ -126,8 +126,8 @@ int main() {
             // Actualizar posiciones y físicas
             jugador.update(gameStarted, gamePaused);
             float speedFactor = jugador.getSpeedFactor();
-            calle.update(gameStarted, gamePaused);
-            ciudad.update(gameStarted, gamePaused);
+            calle.update(gameStarted, gamePaused, speedFactor);
+            ciudad.update(gameStarted, gamePaused, speedFactor);
             baches.update(gameStarted, gamePaused, speedFactor);
             auto respawnedPositions = baches.consumeRespawnPositions();
             for (float obstacleX : respawnedPositions) {

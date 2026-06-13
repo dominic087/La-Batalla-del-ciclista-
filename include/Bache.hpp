@@ -66,6 +66,8 @@ public:
         respawnPositions.clear();
         sf::Sprite s(textura);
         s.setScale({0.18f, 0.18f});
+        // Ajustar el origen al fondo del sprite para que `obstacleY` represente la base sobre la calle
+        s.setOrigin({0.f, s.getGlobalBounds().size.y});
         s.setPosition({800.f, obstacleY});
         baches.push_back(s);
     }
