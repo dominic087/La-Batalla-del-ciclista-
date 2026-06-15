@@ -9,8 +9,8 @@ private:
     sf::Sprite sprite;
     float originalY = 200.f; 
     float velocidadY = 0.f;
-    float gravedad = 0.5f;
-    float fuerzaSalto = -10.f;
+    float gravedad = 0.4f;
+    float fuerzaSalto = -13.f;
     bool isJumping = false;
     float bateria = 100.0f; 
 
@@ -30,7 +30,7 @@ public:
         // El sprite se construyó con la textura vacía; hay que actualizar su rect
         sprite.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(textura.getSize().x),
                                                     static_cast<int>(textura.getSize().y)}));
-        sprite.setScale({0.25f, 0.25f});
+        sprite.setScale({0.35f, 0.35f});
 
         // Calcular el nivel del suelo para que el jugador quede parado encima
         sf::Texture groundTexture;
@@ -41,7 +41,7 @@ public:
         float groundY   = 400.f - 100.f * roadScale;
         // Las ruedas están al ~88% de la altura del sprite (hay ~12% de espacio vacío abajo)
         // Posicionamos para que las ruedas queden exactamente en el nivel del asfalto
-        originalY = groundY - sprite.getGlobalBounds().size.y * 0.88f;
+        originalY = groundY - sprite.getGlobalBounds().size.y * 0.68f;
 
         sprite.setPosition({20.f, originalY});
     }
@@ -49,7 +49,7 @@ public:
     void update(bool gameStarted, bool gamePaused) {
         if (!gameStarted || gamePaused) return;
 
-        bateria -= 0.05f; 
+        bateria -= 0.028f;
         if (bateria < 0) bateria = 0;
 
         if (speedTimer > 0) {
@@ -62,7 +62,7 @@ public:
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !isJumping) {
             velocidadY = fuerzaSalto;
             isJumping = true;
-            bateria -= 2.0f; 
+            bateria -= 1.0f;
         }
 
         velocidadY += gravedad;
@@ -115,8 +115,13 @@ public:
     }
 
     void applyCollisionPenalty() {
-        bateria -= 15.0f; 
+        bateria -= 15.0f;
         if (bateria < 0) bateria = 0;
+    }
+
+    void applyBossDamage(float percent) {
+        bateria -= percent;
+        if (bateria < 0.f) bateria = 0.f;
     }
 
     // ==========================================

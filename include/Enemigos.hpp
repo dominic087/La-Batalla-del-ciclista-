@@ -120,4 +120,20 @@ public:
         if (ghostActivo)    result.push_back(spriteGhost);
         return result;
     }
+
+    // Posiciona a la abuelita en pantalla para la pelea de jefe
+    void activateBossFight() {
+        abuelitaActiva   = true;
+        abuelitaAparecio = true;
+        spriteAbuelita.setPosition({650.f, enemyY});
+    }
+
+    // Quita a la abuelita tras la pelea
+    void dismissAbuelita() {
+        abuelitaActiva = false;
+    }
+
+    sf::Vector2f getAbuelitaPosition() const {
+        return spriteAbuelita.getPosition();
+    }
 };

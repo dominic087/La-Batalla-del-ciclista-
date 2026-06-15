@@ -38,7 +38,7 @@ public:
         if (calle2.getPosition().x <= -spriteWidth) calle2.setPosition({calle1.getPosition().x + spriteWidth, calle2.getPosition().y});
     }
 
-    void draw(sf::RendermWindow& window) {
+    void draw(sf::RenderWindow& window) {
         window.draw(calle1);
         window.draw(calle2);
     }

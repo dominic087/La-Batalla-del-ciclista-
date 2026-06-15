@@ -23,7 +23,7 @@ private:
     int obstacleCounter = 0;
     bool nextIsBattery = true;
     const int batteryThreshold = 2;
-    const int speedThreshold = 2;
+    const int speedThreshold = 4;
     static constexpr float pixelsPerMeter = 36.f;
     static constexpr float powerUpOffsetMeters = 10.f;
 
