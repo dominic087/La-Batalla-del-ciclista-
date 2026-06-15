@@ -1,43 +1,53 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <optional>
 #include <vector>
-#include <cstdlib>
 #include <stdexcept>
 
 class Enemigos {
 private:
     sf::Texture texturaAbuelita;
     sf::Texture texturaGhost;
-    std::vector<sf::Sprite> enemigos;
-    float velocidad = 4.0f;
-    float enemyY = 0.f;
+
+    sf::Sprite spriteAbuelita;
+    sf::Sprite spriteGhost;
+
+    bool abuelitaActiva   = false;
+    bool ghostActivo      = false;
     bool abuelitaAparecio = false;
-    bool ciclstaAparecio = false;
+    bool ghostAparecio    = false;
+
+    float velocidad = 4.0f;
+    float enemyY    = 0.f;
+
+    int shootTimer = 0;
+    static constexpr int shootInterval = 150; // dispara cada ~2.5s a 60fps
+    std::optional<sf::Vector2f> pendingShot;
 
 public:
-    Enemigos() {
-        if (!texturaAbuelita.loadFromFile("assets/image/abuelita.png")) {
+    Enemigos() : spriteAbuelita(texturaAbuelita), spriteGhost(texturaGhost) {
+        if (!texturaAbuelita.loadFromFile("assets/image/abuelita.png"))
             throw std::runtime_error("Error al cargar assets de la abuelita");
-        }
-        if (!texturaGhost.loadFromFile("assets/image/ghost.png")) {
+        if (!texturaGhost.loadFromFile("assets/image/ghost.png"))
             throw std::runtime_error("Error al cargar assets del fantasma");
-        }
 
-        // Cargar textura del piso para calcular posición Y exacta
         sf::Texture groundTexture;
-        if (!groundTexture.loadFromFile("assets/image/ground.png")) {
+        if (!groundTexture.loadFromFile("assets/image/ground.png"))
             throw std::runtime_error("Error al cargar textura del piso para calcular posición");
-        }
 
-        // Calcular posición Y usando la misma lógica que Calle.hpp
         const int groundRectHeight = 100;
         const sf::Vector2u groundSize = groundTexture.getSize();
         float roadScale = 800.f / static_cast<float>(groundSize.x);
-        float groundY = 400.f - static_cast<float>(groundRectHeight) * roadScale;
+        float groundY   = 400.f - static_cast<float>(groundRectHeight) * roadScale;
+        enemyY = groundY - 80.f;
 
-        // Los enemigos deben estar centrados sobre la calle
-        // Calcular una posición que los centre entre el espacio disponible
-        enemyY = groundY - 80.f;  // Posición centrada sobre la calle pero visible
+        // Actualizar rects — los sprites se construyeron con texturas vacías
+        spriteAbuelita.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(texturaAbuelita.getSize().x),
+                                                            static_cast<int>(texturaAbuelita.getSize().y)}));
+        spriteGhost.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(texturaGhost.getSize().x),
+                                                         static_cast<int>(texturaGhost.getSize().y)}));
+        spriteAbuelita.setScale({0.35f, 0.35f});
+        spriteGhost.setScale({0.35f, 0.35f});
 
         reset();
     }
@@ -45,40 +55,69 @@ public:
     void update(bool gameStarted, bool gamePaused, int distancia, float speedFactor) {
         if (!gameStarted || gamePaused) return;
 
-        // Abuelita aparece a los 370 metros
+        // Aparición por distancia
         if (!abuelitaAparecio && distancia >= 370) {
-            sf::Sprite s(texturaAbuelita);
-            s.setScale({0.35f, 0.35f});
-            s.setPosition({800.f, enemyY});
-            enemigos.push_back(s);
+            spriteAbuelita.setPosition({900.f, enemyY});
+            abuelitaActiva   = true;
             abuelitaAparecio = true;
         }
-
-        // Ciclista (ghost) aparece a los 770 metros
-        if (!ciclstaAparecio && distancia >= 770) {
-            sf::Sprite s(texturaGhost);
-            s.setScale({0.35f, 0.35f});
-            s.setPosition({800.f, enemyY});
-            enemigos.push_back(s);
-            ciclstaAparecio = true;
+        if (!ghostAparecio && distancia >= 770) {
+            spriteGhost.setPosition({900.f, enemyY});
+            ghostActivo   = true;
+            ghostAparecio = true;
         }
 
-        for (auto& enemy : enemigos) {
-            enemy.move({-velocidad * speedFactor, 0.f});
+        // Abuelita: se mueve, hace respawn al salir, dispara chancla
+        if (abuelitaActiva) {
+            spriteAbuelita.move({-velocidad * speedFactor, 0.f});
+            if (spriteAbuelita.getPosition().x < -100.f) {
+                spriteAbuelita.setPosition({900.f, enemyY});
+                shootTimer = 0;
+            } else {
+                shootTimer++;
+                if (shootTimer >= shootInterval) {
+                    shootTimer  = 0;
+                    pendingShot = spriteAbuelita.getPosition();
+                }
+            }
         }
+
+        // Ghost (ciclista): más rápido, también hace respawn
+        if (ghostActivo) {
+            spriteGhost.move({-velocidad * 1.5f * speedFactor, 0.f});
+            if (spriteGhost.getPosition().x < -100.f)
+                spriteGhost.setPosition({900.f, enemyY});
+        }
+    }
+
+    // Devuelve true y rellena outPos cuando la abuelita dispara
+    bool pollShootEvent(sf::Vector2f& outPos) {
+        if (pendingShot.has_value()) {
+            outPos = pendingShot.value();
+            pendingShot.reset();
+            return true;
+        }
+        return false;
     }
 
     void draw(sf::RenderWindow& window) {
-        for (auto& enemy : enemigos) {
-            window.draw(enemy);
-        }
+        if (abuelitaActiva) window.draw(spriteAbuelita);
+        if (ghostActivo)    window.draw(spriteGhost);
     }
 
     void reset() {
-        enemigos.clear();
+        abuelitaActiva   = false;
+        ghostActivo      = false;
         abuelitaAparecio = false;
-        ciclstaAparecio = false;
+        ghostAparecio    = false;
+        shootTimer       = 0;
+        pendingShot.reset();
     }
 
-    const std::vector<sf::Sprite>& getEnemies() const { return enemigos; }
+    std::vector<sf::Sprite> getEnemies() const {
+        std::vector<sf::Sprite> result;
+        if (abuelitaActiva) result.push_back(spriteAbuelita);
+        if (ghostActivo)    result.push_back(spriteGhost);
+        return result;
+    }
 };

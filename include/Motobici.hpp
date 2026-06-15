@@ -1,74 +1,90 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <stdexcept>
+#include <cmath>
 
 class Motobici {
 private:
     sf::Texture textura;
     sf::Sprite sprite;
-    float nivelBateria = 100.0f;
-    bool estaSaltando = false;
-    float velocidadSalto = -10.0f;
-    float gravedad = 0.3f;
-    float originalY = 200.f;
-    int slowTimer = 0;
-    int speedBoostTimer = 0;
-    float speedBoostAmount = 0.f;
-    const float baseSpeedKmh = 20.f;
+    float originalY = 200.f; 
+    float velocidadY = 0.f;
+    float gravedad = 0.5f;
+    float fuerzaSalto = -10.f;
+    bool isJumping = false;
+    float bateria = 100.0f; 
+
+    // Variables para los Power-Ups
+    float speedFactor = 1.0f;
+    int speedTimer = 0;
+
+    // Animación de moto
+    float animTimer = 0.f;
 
 public:
     Motobici() : sprite(textura) {
         if (!textura.loadFromFile("assets/image/dinosaur/dino 1.png")) {
             throw std::runtime_error("Error al cargar asset de la motobici");
         }
+        textura.setSmooth(false);
+        // El sprite se construyó con la textura vacía; hay que actualizar su rect
+        sprite.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(textura.getSize().x),
+                                                    static_cast<int>(textura.getSize().y)}));
+        sprite.setScale({0.25f, 0.25f});
 
-        sprite = sf::Sprite(textura);
-        sprite.setScale({0.35f, 0.35f});
-
+        // Calcular el nivel del suelo para que el jugador quede parado encima
         sf::Texture groundTexture;
-        if (!groundTexture.loadFromFile("assets/image/ground.png")) {
-            throw std::runtime_error("Error al cargar textura del piso para calcular posición del personaje");
-        }
-        const int groundRectHeight = 100;
-        float roadScale = 800.f / static_cast<float>(groundTexture.getSize().x);
-        float groundY = 400.f - static_cast<float>(groundRectHeight) * roadScale;
+        if (!groundTexture.loadFromFile("assets/image/ground.png"))
+            throw std::runtime_error("Error al cargar textura del piso en Motobici");
+        const sf::Vector2u groundSize = groundTexture.getSize();
+        float roadScale = 800.f / static_cast<float>(groundSize.x);
+        float groundY   = 400.f - 100.f * roadScale;
+        // Las ruedas están al ~88% de la altura del sprite (hay ~12% de espacio vacío abajo)
+        // Posicionamos para que las ruedas queden exactamente en el nivel del asfalto
+        originalY = groundY - sprite.getGlobalBounds().size.y * 0.88f;
 
-        // Poner la base del sprite sobre la calle, con ajuste aún mayor hacia arriba
-        float spriteHeight = sprite.getGlobalBounds().size.y;
-        sprite.setOrigin({0.f, spriteHeight});
-        const float bodyOffset = 42.f; // eleva el personaje para mostrar el cuerpo completo
-        originalY = groundY - bodyOffset;
         sprite.setPosition({20.f, originalY});
     }
 
     void update(bool gameStarted, bool gamePaused) {
         if (!gameStarted || gamePaused) return;
 
-        if (nivelBateria > 0) {
-            nivelBateria -= 0.02f;
-        }
+        bateria -= 0.05f; 
+        if (bateria < 0) bateria = 0;
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !estaSaltando) {
-            estaSaltando = true;
-            nivelBateria -= 1.0f; 
-        }
-        
-        if (estaSaltando) {
-            sprite.move({0.f, velocidadSalto});
-            velocidadSalto += gravedad;
-            if (sprite.getPosition().y >= originalY) {
-                sprite.setPosition({20.f, originalY});
-                estaSaltando = false;
-                velocidadSalto = -10.0f;
+        if (speedTimer > 0) {
+            speedTimer--;
+            if (speedTimer <= 0) {
+                speedFactor = 1.0f; 
             }
         }
 
-        if (slowTimer > 0) {
-            slowTimer -= 1;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !isJumping) {
+            velocidadY = fuerzaSalto;
+            isJumping = true;
+            bateria -= 2.0f; 
         }
 
-        if (speedBoostTimer > 0) {
-            speedBoostTimer -= 1;
+        velocidadY += gravedad;
+        sprite.move({0.f, velocidadY});
+
+        if (sprite.getPosition().y >= originalY) {
+            sprite.setPosition({sprite.getPosition().x, originalY});
+            isJumping = false;
+            velocidadY = 0.f;
+        }
+
+        // Vibración de moto: el sprite se mantiene pegado al suelo con una leve vibración
+        if (!isJumping) {
+            animTimer += 0.4f * speedFactor;
+            // (1 - cos) oscila entre 0 y +2: el sprite solo se hunde ligeramente en el asfalto
+            // nunca sube por encima de originalY, así las ruedas siempre tocan el suelo
+            float bounce = (1.f - std::cos(animTimer * 2.f)) * 0.7f;
+            float tilt   = std::sin(animTimer * 0.5f) * 0.8f;
+            sprite.setPosition({sprite.getPosition().x, originalY + bounce});
+            sprite.setRotation(sf::degrees(tilt));
+        } else {
+            sprite.setRotation(sf::degrees(0.f));
         }
     }
 
@@ -76,61 +92,50 @@ public:
         window.draw(sprite);
     }
 
-    // Sintaxis corregida para std::optional de SFML 3
-    bool checkCollision(const sf::Sprite& obstaculo) {
-        return sprite.getGlobalBounds().findIntersection(obstaculo.getGlobalBounds()).has_value();
-    }
-
-    bool checkCollision(const sf::FloatRect& bounds) {
-        return sprite.getGlobalBounds().findIntersection(bounds).has_value();
-    }
+    // ==========================================
+    // AQUÍ ESTÁN LAS FUNCIONES QUE PIDE TU MAIN
+    // ==========================================
 
     sf::FloatRect getGlobalBounds() const {
         return sprite.getGlobalBounds();
     }
 
-    float getBateria() const { return nivelBateria; }
-
     float getSpeedFactor() const {
-        if (slowTimer > 0) return 0.5f;
-        if (speedBoostTimer > 0) return 1.3f;
-        return 1.0f;
-    }
-
-    float getSpeedKmh() const {
-        float speed = baseSpeedKmh;
-        if (speedBoostTimer > 0) speed += speedBoostAmount;
-        if (slowTimer > 0) speed -= 8.f;
-        if (speed < 0.f) speed = 0.f;
-        if (speed > 35.f) speed = 35.f;
-        return speed;
-    }
-
-    void applyCollisionPenalty() {
-        nivelBateria -= 15.0f;
-        if (nivelBateria < 0.0f) {
-            nivelBateria = 0.0f;
-        }
-        slowTimer = 180; // 3 segundos a 60fps
+        return speedFactor;
     }
 
     void applyBatteryPickup(float amount) {
-        nivelBateria += amount;
-        if (nivelBateria > 100.f) nivelBateria = 100.f;
+        bateria += amount;
+        if (bateria > 100.0f) bateria = 100.0f; 
     }
 
-    void applySpeedPickup(float amount, int durationFrames) {
-        speedBoostAmount = amount;
-        speedBoostTimer = durationFrames;
+    void applySpeedPickup(float boostAmount, int duration) {
+        speedFactor = boostAmount;
+        speedTimer = duration; 
+    }
+
+    void applyCollisionPenalty() {
+        bateria -= 15.0f; 
+        if (bateria < 0) bateria = 0;
+    }
+
+    // ==========================================
+
+    bool checkCollision(const sf::Sprite& obstacle) {
+        return sprite.getGlobalBounds().findIntersection(obstacle.getGlobalBounds()).has_value();
     }
 
     void reset() {
-        nivelBateria = 100.0f;
         sprite.setPosition({20.f, originalY});
-        estaSaltando = false;
-        velocidadSalto = -10.0f;
-        slowTimer = 0;
-        speedBoostTimer = 0;
-        speedBoostAmount = 0.f;
+        sprite.setRotation(sf::degrees(0.f));
+        velocidadY = 0.f;
+        isJumping = false;
+        bateria = 100.0f;
+        speedFactor = 1.0f;
+        speedTimer = 0;
+        animTimer = 0.f;
     }
+
+    float getBateria() const { return bateria; }
+    const sf::Sprite& getSprite() const { return sprite; }
 };

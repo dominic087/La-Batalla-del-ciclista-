@@ -47,7 +47,7 @@ public:
         groundY = 400.f - static_cast<float>(groundRectHeight) * roadScale;
     }
 
-    void update(bool gameStarted, bool gamePaused, int distancia, float speedFactor) {
+    void update(bool gameStarted, bool gamePaused, float speedFactor) {
         if (!gameStarted || gamePaused) return;
 
         for (auto& item : items) {

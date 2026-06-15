@@ -14,8 +14,10 @@ public:
         if (!textura.loadFromFile("assets/image/chancla.png")) {
             throw std::runtime_error("Error al cargar textura de la chancla");
         }
-        textura.setSmooth(false); // Mantiene el pixel art nítido
-        sprite.setScale({0.15f, 0.15f}); // Ajusta este valor si la chancla sale muy grande
+        textura.setSmooth(false);
+        sprite.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(textura.getSize().x),
+                                                    static_cast<int>(textura.getSize().y)}));
+        sprite.setScale({0.15f, 0.15f});
         esconder();
     }
 

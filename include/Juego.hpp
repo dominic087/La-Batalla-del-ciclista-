@@ -9,7 +9,7 @@
 #include "Ciudad.hpp"
 #include "Bache.hpp"
 #include "Ciclista.hpp"
-#include "Abuelita.hpp" // Agregamos a la Abuelita
+#include "Abuelita.hpp" 
 
 class Juego {
 private:
@@ -19,7 +19,7 @@ private:
     Ciudad ciudad;
     Bache baches;
     Ciclista jefeCiclista;
-    Abuelita jefaAbuelita; // Declaramos a la Abuelita
+    Abuelita jefaAbuelita; 
 
     sf::Texture titleTexture;
     sf::Sprite titleSprite;
@@ -34,16 +34,14 @@ private:
     bool gamePaused = false;
 
 public:
+    // CORRECCIÓN: Quitamos los textos de esta lista para inicializarlos vacíos
     Juego() : 
         window(sf::VideoMode({800, 400}), "La Batalla del Ciclista"),
-        titleSprite(titleTexture),
-        distanciaText(font),
-        bateriaText(font) 
+        titleSprite(titleTexture)
     {
         window.setFramerateLimit(60);
         
        if (titleTexture.loadFromFile("assets/image/title.jpg")) {
-            // Obtenemos el tamaño real de tu imagen generada
             sf::Vector2u size = titleTexture.getSize();
             float scaleX = 1200.f / size.x;
             float scaleY = 600.f / size.y;
@@ -56,11 +54,16 @@ public:
             backgroundMusic.play();
         }
         
-        if (font.openFromFile("assets/fonts/font.ttf")) {
+        // CORRECCIÓN: Cambiamos openFromFile por loadFromFile
+        if (font.loadFromFile("assets/fonts/font.ttf")) {
+            
+            // CORRECCIÓN: Asignamos la fuente a cada texto usando setFont()
+            distanciaText.setFont(font);
             distanciaText.setCharacterSize(22);
             distanciaText.setFillColor(sf::Color::White);
             distanciaText.setPosition({30.f, 10.f});
 
+            bateriaText.setFont(font);
             bateriaText.setCharacterSize(22);
             bateriaText.setFillColor(sf::Color::Green);
             bateriaText.setPosition({550.f, 10.f});
@@ -111,14 +114,14 @@ private:
                 // Fase 1: Abuelita
                 jefaAbuelita.update(gameStarted, gamePaused);
                 if (jugador.checkCollision(jefaAbuelita.getSprite())) {
-                    gamePaused = true; // Chocaste con la abuelita
+                    gamePaused = true; 
                 }
             } else {
                 // Fase 2: Ciclista Furioso
-                jefaAbuelita.esconder(); // Quitamos a la abuelita
+                jefaAbuelita.esconder(); 
                 jefeCiclista.update(gameStarted, gamePaused);
                 if (jugador.checkCollision(jefeCiclista.getSprite())) {
-                    gamePaused = true; // Chocaste con el ciclista
+                    gamePaused = true; 
                 }
             }
 
