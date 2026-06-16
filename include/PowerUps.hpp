@@ -95,13 +95,20 @@ public:
         nextIsBattery = true;
     }
 
+    // Aparecen 3 esferas de energía como recompensa al vencer un jefe
+    void spawnVictoryBattery() {
+        spawnPowerUp(PowerUpType::Battery, 350.f);
+        spawnPowerUp(PowerUpType::Battery, 600.f);
+        spawnPowerUp(PowerUpType::Battery, 850.f);
+    }
+
 private:
     void spawnPowerUp(PowerUpType type, float spawnX) {
         const sf::Texture& texture = (type == PowerUpType::Battery ? batteryTexture : speedTexture);
         PowerUp powerUp(type, texture);
 
         const sf::FloatRect textureBounds = powerUp.sprite.getGlobalBounds();
-        float desiredSize = 60.f; // power-ups más visibles
+        float desiredSize = 90.f;
         float scale = desiredSize / std::max(textureBounds.size.x, textureBounds.size.y);
         powerUp.sprite.setScale({scale, scale});
         powerUp.sprite.setOrigin({powerUp.sprite.getGlobalBounds().size.x / 2.f, powerUp.sprite.getGlobalBounds().size.y / 2.f});

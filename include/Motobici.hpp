@@ -10,8 +10,11 @@ private:
     float originalY = 200.f; 
     float velocidadY = 0.f;
     float gravedad = 0.4f;
-    float fuerzaSalto = -13.f;
-    bool isJumping = false;
+    float fuerzaSalto      = -12.2f;
+    float fuerzaSaltoDoble = -15.5f;
+    bool isJumping     = false;
+    bool canDoubleJump = false;
+    bool spaceReleased = true;
     float bateria = 100.0f; 
 
     // Variables para los Power-Ups
@@ -20,6 +23,8 @@ private:
 
     // Animación de moto
     float animTimer = 0.f;
+
+    bool bossFightMode = false;
 
 public:
     Motobici() : sprite(textura) {
@@ -49,20 +54,39 @@ public:
     void update(bool gameStarted, bool gamePaused) {
         if (!gameStarted || gamePaused) return;
 
-        bateria -= 0.028f;
-        if (bateria < 0) bateria = 0;
+        // Durante pelea de jefe el drenaje pasivo se pausa
+        // Durante turbo activo el drenaje baja a la mitad
+        if (!bossFightMode) {
+            bateria -= (speedTimer > 0) ? 0.012f : 0.028f;
+            if (bateria < 0) bateria = 0;
+        }
 
         if (speedTimer > 0) {
             speedTimer--;
-            if (speedTimer <= 0) {
-                speedFactor = 1.0f; 
-            }
+            if (speedTimer <= 0) speedFactor = 1.0f;
         }
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !isJumping) {
-            velocidadY = fuerzaSalto;
-            isJumping = true;
-            bateria -= 1.0f;
+        // Detectar flanco de subida de Space (requiere soltar y volver a pulsar)
+        bool spaceNow = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
+        if (!spaceNow) spaceReleased = true;
+
+        if (spaceNow && spaceReleased) {
+            spaceReleased = false;
+            float costo = bossFightMode ? 8.0f : 1.0f;
+            if (!isJumping) {
+                // Primer salto
+                velocidadY = fuerzaSalto;
+                isJumping = true;
+                canDoubleJump = true;
+                bateria -= costo;
+                if (bateria < 0.f) bateria = 0.f;
+            } else if (canDoubleJump) {
+                // Doble salto — más alto
+                velocidadY = fuerzaSaltoDoble;
+                canDoubleJump = false;
+                bateria -= costo;
+                if (bateria < 0.f) bateria = 0.f;
+            }
         }
 
         velocidadY += gravedad;
@@ -70,8 +94,9 @@ public:
 
         if (sprite.getPosition().y >= originalY) {
             sprite.setPosition({sprite.getPosition().x, originalY});
-            isJumping = false;
-            velocidadY = 0.f;
+            isJumping     = false;
+            velocidadY    = 0.f;
+            canDoubleJump = false;
         }
 
         // Vibración de moto: el sprite se mantiene pegado al suelo con una leve vibración
@@ -124,6 +149,8 @@ public:
         if (bateria < 0.f) bateria = 0.f;
     }
 
+    void setBossFightMode(bool active) { bossFightMode = active; }
+
     // ==========================================
 
     bool checkCollision(const sf::Sprite& obstacle) {
@@ -133,12 +160,15 @@ public:
     void reset() {
         sprite.setPosition({20.f, originalY});
         sprite.setRotation(sf::degrees(0.f));
-        velocidadY = 0.f;
-        isJumping = false;
-        bateria = 100.0f;
-        speedFactor = 1.0f;
-        speedTimer = 0;
-        animTimer = 0.f;
+        velocidadY    = 0.f;
+        isJumping     = false;
+        canDoubleJump = false;
+        spaceReleased = true;
+        bateria       = 100.0f;
+        speedFactor   = 1.0f;
+        speedTimer    = 0;
+        animTimer     = 0.f;
+        bossFightMode = false;
     }
 
     float getBateria() const { return bateria; }

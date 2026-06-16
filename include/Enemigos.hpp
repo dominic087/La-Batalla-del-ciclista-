@@ -39,14 +39,14 @@ public:
         const sf::Vector2u groundSize = groundTexture.getSize();
         float roadScale = 800.f / static_cast<float>(groundSize.x);
         float groundY   = 400.f - static_cast<float>(groundRectHeight) * roadScale;
-        enemyY = groundY - 80.f;
+        enemyY = groundY - 45.f;
 
         // Actualizar rects — los sprites se construyeron con texturas vacías
         spriteAbuelita.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(texturaAbuelita.getSize().x),
                                                             static_cast<int>(texturaAbuelita.getSize().y)}));
         spriteGhost.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(texturaGhost.getSize().x),
                                                          static_cast<int>(texturaGhost.getSize().y)}));
-        spriteAbuelita.setScale({0.35f, 0.35f});
+        spriteAbuelita.setScale({0.22f, 0.22f});
         spriteGhost.setScale({0.35f, 0.35f});
 
         reset();
@@ -136,4 +136,33 @@ public:
     sf::Vector2f getAbuelitaPosition() const {
         return spriteAbuelita.getPosition();
     }
+
+    // ── Jefe 2: El Ciclista Kamikaze ──
+    void activateCiclistaBoss() {
+        ghostActivo   = true;
+        ghostAparecio = true;
+        spriteGhost.setPosition({900.f, enemyY});
+    }
+
+    void moveCiclista(float speed) {
+        spriteGhost.move({-speed, 0.f});
+    }
+
+    bool isCiclistaOffScreen() const {
+        return spriteGhost.getPosition().x < -100.f;
+    }
+
+    void hideCiclista() {
+        spriteGhost.setPosition({-200.f, enemyY});
+    }
+
+    void resetCiclistaForPass() {
+        spriteGhost.setPosition({900.f, enemyY});
+    }
+
+    void dismissCiclista() {
+        ghostActivo = false;
+    }
+
+    const sf::Sprite& getCiclistaSprite() const { return spriteGhost; }
 };

@@ -40,16 +40,21 @@ public:
         reset();
     }
 
-    void update(bool gameStarted, bool gamePaused, float speedFactor) {
+    void update(bool gameStarted, bool gamePaused, float speedFactor, bool spawnEnabled = true) {
         if (!gameStarted || gamePaused) return;
-        
+
         for (auto& bache : baches) {
             bache.move({-velocidad * speedFactor, 0.f});
             if (bache.getPosition().x < -50) {
-                float nextX = 900.f + minObstacleDistance + static_cast<float>(rand() % 100);
-                bache.setPosition({nextX, obstacleY});
-                respawnPositions.push_back(nextX);
-                respawnCount += 1;
+                if (spawnEnabled) {
+                    float nextX = 900.f + minObstacleDistance + static_cast<float>(rand() % 100);
+                    bache.setPosition({nextX, obstacleY});
+                    respawnPositions.push_back(nextX);
+                    respawnCount += 1;
+                } else {
+                    // Aparcar fuera de pantalla sin respawnear
+                    bache.setPosition({2000.f, obstacleY});
+                }
             }
         }
     }
