@@ -119,6 +119,9 @@ int main() {
     int  boss3WaitTimer    = 0;
     bool boss3PassActive   = false;
     bool boss3HitThisPass  = false;
+    int  boss3SubPhase     = 0;
+    int  boss3SubTimer     = 0;
+    bool boss3ChanclaFired = false;
 
     while (window.isOpen()) {
         
@@ -171,6 +174,9 @@ int main() {
             boss3WaitTimer    = 0;
             boss3PassActive   = false;
             boss3HitThisPass  = false;
+            boss3SubPhase     = 0;
+            boss3SubTimer     = 0;
+            boss3ChanclaFired = false;
         }
 
         if (gameStarted && !gamePaused) {
@@ -199,6 +205,7 @@ int main() {
                 boss3HitThisPass = false;
                 enemigos.activateTaxistaBoss();
                 jugador.setBossFightMode(true);
+                jugador.setBossSlowDrain(true);
                 jugador.setJumpCost(8.0f);
                 jugador.setXPosition(250.f);
             }
@@ -323,39 +330,108 @@ int main() {
                 if (jugador.getBateria() <= 0) gamePaused = true;
 
             } else if (bossFight3Active) {
-                // ── PELEA CON JEFE 3: El Taxista ──
+                // ── PELEA CON JEFE FINAL: El Taxista ──
                 jugador.update(true, false);
 
+                const char* boss3Msg = "Salta cuando se lance!";
+
                 if (boss3PassActive) {
-                    const float taxiSpeeds[4] = {14.0f, 15.0f, 16.0f, 17.0f};
-                    float chargeSpeed = taxiSpeeds[boss3PassCount < 4 ? boss3PassCount : 3];
-                    enemigos.moveTaxista(chargeSpeed);
+                    switch (boss3PassCount) {
 
-                    if (!boss3HitThisPass && jugador.checkCollision(enemigos.getTaxistaSprite())) {
-                        boss3HitCount++;
-                        boss3HitThisPass = true;
-                        jugador.applyBossDamage(12.0f);
+                    case 0: { // Embestida simple
+                        enemigos.moveTaxista(14.0f);
+                        if (!boss3HitThisPass && jugador.checkCollision(enemigos.getTaxistaSprite())) {
+                            boss3HitCount++; boss3HitThisPass = true;
+                            jugador.applyBossDamage(12.0f);
+                        }
+                        if (enemigos.isTaxistaOffScreen()) {
+                            boss3PassActive = false; boss3HitThisPass = false;
+                            boss3PassCount++; boss3WaitTimer = 90;
+                        }
+                        break;
                     }
 
-                    if (enemigos.isTaxistaOffScreen()) {
-                        if (!boss3HitThisPass) boss3DodgedCount++;
-                        boss3PassActive  = false;
-                        boss3HitThisPass = false;
-                        boss3PassCount++;
-                        boss3WaitTimer = 60;
+                    case 1: { // Entra lento → para → arranca rápido
+                        boss3Msg = "Cuidado! Va a acelerar!";
+                        if (boss3SubPhase == 0) {
+                            enemigos.moveTaxista(2.5f);
+                            if (enemigos.getTaxistaPos().x <= 480.f) {
+                                boss3SubPhase = 1;
+                                boss3SubTimer = 180; // 3 segundos parado
+                            }
+                        } else if (boss3SubPhase == 1) {
+                            boss3Msg = "Acelerando... SALTA!";
+                            if (--boss3SubTimer <= 0) boss3SubPhase = 2;
+                        } else {
+                            enemigos.moveTaxista(19.0f);
+                            if (!boss3HitThisPass && jugador.checkCollision(enemigos.getTaxistaSprite())) {
+                                boss3HitCount++; boss3HitThisPass = true;
+                                jugador.applyBossDamage(12.0f);
+                            }
+                            if (enemigos.isTaxistaOffScreen()) {
+                                boss3PassActive = false; boss3HitThisPass = false;
+                                boss3SubPhase = 0; boss3PassCount++; boss3WaitTimer = 90;
+                            }
+                        }
+                        break;
                     }
+
+                    case 2: { // Lanza una chancla
+                        boss3Msg = "Lanzando objeto! Salta!";
+                        if (!boss3ChanclaFired) {
+                            chancla.lanzar(enemigos.getTaxistaPos().x, enemigos.getTaxistaPos().y);
+                            boss3ChanclaFired = true;
+                        } else {
+                            bool chanclaWasActiva3 = chancla.isActiva();
+                            chancla.update(true, false);
+                            if (chancla.isActiva() && jugador.checkCollisionRect(chancla.getHitbox())) {
+                                jugador.applyBossDamage(12.0f);
+                                chancla.esconder();
+                            }
+                            if (chanclaWasActiva3 && !chancla.isActiva()) {
+                                boss3PassActive   = false;
+                                boss3ChanclaFired = false;
+                                boss3PassCount++;
+                                boss3WaitTimer = 90;
+                            }
+                        }
+                        break;
+                    }
+
+                    case 3: { // Embestida ultra-rápida
+                        boss3Msg = "VELOCIDAD MAXIMA! SALTA!";
+                        enemigos.moveTaxista(23.0f);
+                        if (!boss3HitThisPass && jugador.checkCollision(enemigos.getTaxistaSprite())) {
+                            boss3HitCount++; boss3HitThisPass = true;
+                            jugador.applyBossDamage(12.0f);
+                        }
+                        if (enemigos.isTaxistaOffScreen()) {
+                            boss3PassActive = false; boss3HitThisPass = false;
+                            boss3PassCount++; boss3WaitTimer = 0;
+                        }
+                        break;
+                    }
+
+                    } // end switch
                 } else {
                     if (boss3WaitTimer > 0) {
                         boss3WaitTimer--;
                     } else if (boss3PassCount < 4) {
-                        enemigos.resetTaxistaForPass();
+                        if (boss3PassCount == 2)
+                            enemigos.positionTaxistaForChancla();
+                        else
+                            enemigos.resetTaxistaForPass();
                         boss3PassActive  = true;
                         boss3HitThisPass = false;
+                        boss3SubPhase    = 0;
+                        boss3SubTimer    = 0;
                     } else {
+                        // Fin de la pelea
                         bossFight3Active = false;
                         bossFight3Done   = true;
                         enemigos.dismissTaxista();
                         jugador.setBossFightMode(false);
+                        jugador.setBossSlowDrain(false);
                         jugador.setJumpCost(1.0f);
                         jugador.setXPosition(20.f);
                         powerUps.spawnVictoryBattery();
@@ -363,8 +439,7 @@ int main() {
                 }
 
                 bossText.setString(
-                    "JEFE FINAL: Taxista  |  Ataques: " + std::to_string(boss3PassCount) +
-                    "/4  |  Salta cuando se lance!"
+                    "JEFE FINAL: Taxista [" + std::to_string(boss3PassCount + 1) + "/4]  |  " + boss3Msg
                 );
                 bateriaText.setString("Bateria: " + std::to_string(static_cast<int>(jugador.getBateria())) + "%");
                 bateriaText.setFillColor(jugador.getBateria() < 30.f ? sf::Color::Red : sf::Color::Green);

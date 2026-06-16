@@ -24,8 +24,9 @@ private:
     // Animación de moto
     float animTimer = 0.f;
 
-    bool bossFightMode = false;
-    float jumpCost = 1.0f;
+    bool bossFightMode  = false;
+    bool bossSlowDrain  = false;
+    float jumpCost      = 1.0f;
 
 public:
     Motobici() : sprite(textura) {
@@ -59,6 +60,9 @@ public:
         // Durante turbo activo el drenaje baja a la mitad
         if (!bossFightMode) {
             bateria -= (speedTimer > 0) ? 0.012f : 0.028f;
+            if (bateria < 0) bateria = 0;
+        } else if (bossSlowDrain) {
+            bateria -= 0.008f;
             if (bateria < 0) bateria = 0;
         }
 
@@ -150,8 +154,9 @@ public:
         if (bateria < 0.f) bateria = 0.f;
     }
 
-    void setBossFightMode(bool active) { bossFightMode = active; }
-    void setJumpCost(float cost) { jumpCost = cost; }
+    void setBossFightMode(bool active)  { bossFightMode = active; }
+    void setBossSlowDrain(bool active)  { bossSlowDrain = active; }
+    void setJumpCost(float cost)        { jumpCost = cost; }
     void setXPosition(float x) { sprite.setPosition({x, sprite.getPosition().y}); }
 
     // ==========================================
@@ -179,9 +184,10 @@ public:
         bateria       = 100.0f;
         speedFactor   = 1.0f;
         speedTimer    = 0;
-        animTimer     = 0.f;
-        bossFightMode = false;
-        jumpCost      = 1.0f;
+        animTimer      = 0.f;
+        bossFightMode  = false;
+        bossSlowDrain  = false;
+        jumpCost       = 1.0f;
     }
 
     float getBateria() const { return bateria; }

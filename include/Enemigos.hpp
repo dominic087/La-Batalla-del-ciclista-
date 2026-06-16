@@ -21,8 +21,9 @@ private:
     bool ghostAparecio    = false;
     bool taxistaAparecio  = false;
 
-    float velocidad = 4.0f;
-    float enemyY    = 0.f;
+    float velocidad  = 4.0f;
+    float enemyY     = 0.f;
+    float taxistaY   = 0.f;
 
     int shootTimer = 0;
     static constexpr int shootInterval = 150;
@@ -45,7 +46,8 @@ public:
         const sf::Vector2u groundSize = groundTexture.getSize();
         float roadScale = 800.f / static_cast<float>(groundSize.x);
         float groundY   = 400.f - static_cast<float>(groundRectHeight) * roadScale;
-        enemyY = groundY - 45.f;
+        enemyY   = groundY - 45.f;
+        taxistaY = groundY - 95.f;
 
         spriteAbuelita.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(texturaAbuelita.getSize().x),
                                                             static_cast<int>(texturaAbuelita.getSize().y)}));
@@ -53,9 +55,9 @@ public:
                                                          static_cast<int>(texturaGhost.getSize().y)}));
         spriteTaxista.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(texturaTaxista.getSize().x),
                                                            static_cast<int>(texturaTaxista.getSize().y)}));
-        spriteAbuelita.setScale({0.22f, 0.22f});
+        spriteAbuelita.setScale({0.28f, 0.28f});
         spriteGhost.setScale({0.35f, 0.35f});
-        spriteTaxista.setScale({0.35f, 0.35f});
+        spriteTaxista.setScale({0.48f, 0.48f});
 
         reset();
     }
@@ -164,7 +166,7 @@ public:
     void activateTaxistaBoss() {
         taxistaActivo   = true;
         taxistaAparecio = true;
-        spriteTaxista.setPosition({900.f, enemyY});
+        spriteTaxista.setPosition({900.f, taxistaY});
     }
 
     void moveTaxista(float speed) { spriteTaxista.move({-speed, 0.f}); }
@@ -174,9 +176,11 @@ public:
         return rightEdge < 0.f;
     }
 
-    void hideTaxista()        { spriteTaxista.setPosition({-200.f, enemyY}); }
-    void resetTaxistaForPass(){ spriteTaxista.setPosition({900.f, enemyY}); }
-    void dismissTaxista()     { taxistaActivo = false; }
+    void hideTaxista()              { spriteTaxista.setPosition({-300.f, taxistaY}); }
+    void resetTaxistaForPass()      { spriteTaxista.setPosition({900.f, taxistaY}); }
+    void positionTaxistaForChancla(){ spriteTaxista.setPosition({650.f, taxistaY}); }
+    void dismissTaxista()           { taxistaActivo = false; }
 
+    sf::Vector2f getTaxistaPos() const { return spriteTaxista.getPosition(); }
     const sf::Sprite& getTaxistaSprite() const { return spriteTaxista; }
 };
