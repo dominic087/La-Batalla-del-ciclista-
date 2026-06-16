@@ -98,8 +98,7 @@ public:
     // Aparecen 3 esferas de energía como recompensa al vencer un jefe
     void spawnVictoryBattery() {
         spawnPowerUp(PowerUpType::Battery, 350.f);
-        spawnPowerUp(PowerUpType::Battery, 600.f);
-        spawnPowerUp(PowerUpType::Battery, 850.f);
+        spawnPowerUp(PowerUpType::Battery, 650.f);
     }
 
 private:

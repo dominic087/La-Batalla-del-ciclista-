@@ -52,4 +52,12 @@ public:
 
     bool isActiva() const { return activa; }
     const sf::Sprite& getSprite() const { return sprite; }
+
+    // Hitbox reducido al 50% central para colisiones más justas
+    sf::FloatRect getHitbox() const {
+        sf::FloatRect b = sprite.getGlobalBounds();
+        float mx = b.size.x * 0.25f;
+        float my = b.size.y * 0.25f;
+        return {{b.position.x + mx, b.position.y + my}, {b.size.x * 0.5f, b.size.y * 0.5f}};
+    }
 };

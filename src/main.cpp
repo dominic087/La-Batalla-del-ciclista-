@@ -100,7 +100,7 @@ int main() {
     int  bossHitCount       = 0;
     int  bossShootTimer     = 0;
 
-    // Estado de pelea con jefe 2 (Ciclista a 770m)
+    // Estado de pelea con jefe 2 (Ciclista a 710m)
     bool bossFight2Active  = false;
     bool bossFight2Done    = false;
     int  boss2PassCount    = 0;
@@ -108,6 +108,17 @@ int main() {
     int  boss2HitCount     = 0;
     int  boss2WaitTimer    = 0;
     bool boss2PassActive   = false;
+    bool boss2HitThisPass  = false;
+
+    // Estado de pelea con jefe 3 (Taxista a 1100m)
+    bool bossFight3Active  = false;
+    bool bossFight3Done    = false;
+    int  boss3PassCount    = 0;
+    int  boss3DodgedCount  = 0;
+    int  boss3HitCount     = 0;
+    int  boss3WaitTimer    = 0;
+    bool boss3PassActive   = false;
+    bool boss3HitThisPass  = false;
 
     while (window.isOpen()) {
         
@@ -132,6 +143,7 @@ int main() {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && gamePaused) {
             gamePaused = false;
             jugador.reset();
+            jugador.setXPosition(20.f);
             baches.reset();
             enemigos.reset();
             powerUps.reset();
@@ -150,6 +162,15 @@ int main() {
             boss2HitCount     = 0;
             boss2WaitTimer    = 0;
             boss2PassActive   = false;
+            boss2HitThisPass  = false;
+            bossFight3Active  = false;
+            bossFight3Done    = false;
+            boss3PassCount    = 0;
+            boss3DodgedCount  = 0;
+            boss3HitCount     = 0;
+            boss3WaitTimer    = 0;
+            boss3PassActive   = false;
+            boss3HitThisPass  = false;
         }
 
         if (gameStarted && !gamePaused) {
@@ -163,10 +184,26 @@ int main() {
                 chancla.esconder();
                 enemigos.activateBossFight();
                 jugador.setBossFightMode(true);
+                jugador.setJumpCost(3.0f);
             }
 
             // Activar pelea con jefe 2 al llegar a 770m
-            if (bossFight1Done && !bossFight2Done && !bossFight2Active && metrosRecorridos >= 770) {
+            // Activar pelea con jefe 3 al llegar a 1100m
+            if (bossFight2Done && !bossFight3Done && !bossFight3Active && metrosRecorridos >= 1100) {
+                bossFight3Active = true;
+                boss3PassCount   = 0;
+                boss3DodgedCount = 0;
+                boss3HitCount    = 0;
+                boss3WaitTimer   = 90;
+                boss3PassActive  = false;
+                boss3HitThisPass = false;
+                enemigos.activateTaxistaBoss();
+                jugador.setBossFightMode(true);
+                jugador.setJumpCost(8.0f);
+                jugador.setXPosition(250.f);
+            }
+
+            if (bossFight1Done && !bossFight2Done && !bossFight2Active && metrosRecorridos >= 710) {
                 bossFight2Active = true;
                 boss2PassCount   = 0;
                 boss2DodgedCount = 0;
@@ -175,15 +212,19 @@ int main() {
                 boss2PassActive  = false;
                 enemigos.activateCiclistaBoss();
                 jugador.setBossFightMode(true);
+                jugador.setJumpCost(8.0f);
+                jugador.setXPosition(250.f);
             }
 
             if (bossFight1Active) {
                 // ── PELEA CON JEFE 1: Abuelita ──
-                // Guardar estado antes de actualizar para detectar esquivas
                 bool chanclaWasActiva = chancla.isActiva();
 
                 jugador.update(true, false);
                 chancla.update(true, false);
+
+                // Capturar si la chancla salió de pantalla ANTES de que el timer lance una nueva
+                bool chanclaDesaparecioEstFrame = chanclaWasActiva && !chancla.isActiva();
 
                 // La abuelita dispara cada 90 frames (1.5 s)
                 bossShootTimer--;
@@ -196,16 +237,17 @@ int main() {
 
                 // Detección de impacto: -5% por golpe; al 3er golpe -15% extra
                 bool hitThisFrame = false;
-                if (chancla.isActiva() && jugador.checkCollision(chancla.getSprite())) {
+                if (chancla.isActiva() && jugador.checkCollisionRect(chancla.getHitbox())) {
                     bossHitCount++;
                     hitThisFrame = true;
                     jugador.applyBossDamage(5.0f);
                     if (bossHitCount == 3) jugador.applyBossDamage(15.0f);
                     chancla.esconder();
+                    chanclaDesaparecioEstFrame = false; // fue un golpe, no una esquiva
                 }
 
-                // Esquiva: la chancla estaba activa, ya salió de pantalla, sin impacto
-                if (chanclaWasActiva && !chancla.isActiva() && !hitThisFrame) {
+                // Esquiva: la chancla salió de pantalla sin haberle pegado al jugador
+                if (chanclaDesaparecioEstFrame) {
                     bossChanclasDodged++;
                 }
 
@@ -215,12 +257,13 @@ int main() {
                     bossFight1Done   = true;
                     enemigos.dismissAbuelita();
                     jugador.setBossFightMode(false);
+                    jugador.setJumpCost(1.0f);
                     powerUps.spawnVictoryBattery();
                     distanciaText.setString("Distancia: " + std::to_string(metrosRecorridos) + "m");
                 }
 
                 bossText.setString(
-                    "JEFA: Abuelita  |  Esquivadas: " + std::to_string(bossChanclasDodged) +
+                    "JEFA: Abuelita  |  Chanclas: " + std::to_string(bossChanclasFired) +
                     "/4  |  Salta para esquivar!"
                 );
                 bateriaText.setString("Bateria: " + std::to_string(static_cast<int>(jugador.getBateria())) + "%");
@@ -232,43 +275,96 @@ int main() {
                 jugador.update(true, false);
 
                 if (boss2PassActive) {
-                    // Cada pasada es más rápida: 12, 13.5, 15, 16.5, 18 px/frame
-                    float chargeSpeed = 12.0f + boss2PassCount * 1.5f;
+                    // 3 pasadas: 12.0, 12.8, 13.8 px/frame
+                    const float chargeSpeeds[3] = {12.0f, 12.8f, 13.8f};
+                    float chargeSpeed = chargeSpeeds[boss2PassCount < 3 ? boss2PassCount : 2];
                     enemigos.moveCiclista(chargeSpeed);
 
-                    bool hitThisFrame = jugador.checkCollision(enemigos.getCiclistaSprite());
-                    if (hitThisFrame) {
+                    // Golpe: solo se aplica una vez por pasada; el ciclista sigue de largo
+                    if (!boss2HitThisPass && jugador.checkCollision(enemigos.getCiclistaSprite())) {
                         boss2HitCount++;
+                        boss2HitThisPass = true;
                         jugador.applyBossDamage(10.0f);
-                        enemigos.hideCiclista();
-                        boss2PassActive = false;
-                        boss2PassCount++;
-                        boss2WaitTimer = 90;
-                    } else if (enemigos.isCiclistaOffScreen()) {
-                        boss2DodgedCount++;
-                        boss2PassActive = false;
+                    }
+
+                    // Fin de pasada: ciclista salió completamente por la izquierda
+                    if (enemigos.isCiclistaOffScreen()) {
+                        if (!boss2HitThisPass) boss2DodgedCount++;
+                        boss2PassActive  = false;
+                        boss2HitThisPass = false;
                         boss2PassCount++;
                         boss2WaitTimer = 60;
                     }
                 } else {
                     if (boss2WaitTimer > 0) {
                         boss2WaitTimer--;
-                    } else if (boss2PassCount < 5) {
+                    } else if (boss2PassCount < 3) {
                         enemigos.resetCiclistaForPass();
-                        boss2PassActive = true;
+                        boss2PassActive  = true;
+                        boss2HitThisPass = false;
                     } else {
                         // Las 5 pasadas completadas — fin de la pelea
                         bossFight2Active = false;
                         bossFight2Done   = true;
                         enemigos.dismissCiclista();
                         jugador.setBossFightMode(false);
+                        jugador.setJumpCost(1.0f);
+                        jugador.setXPosition(20.f);
                         powerUps.spawnVictoryBattery();
                     }
                 }
 
                 bossText.setString(
-                    "JEFE: Ciclista  |  Esquivadas: " + std::to_string(boss2DodgedCount) +
-                    "/5  |  Salta cuando se lance!"
+                    "JEFE: Ciclista  |  Ataques: " + std::to_string(boss2PassCount) +
+                    "/3  |  Salta cuando se lance!"
+                );
+                bateriaText.setString("Bateria: " + std::to_string(static_cast<int>(jugador.getBateria())) + "%");
+                bateriaText.setFillColor(jugador.getBateria() < 30.f ? sf::Color::Red : sf::Color::Green);
+                if (jugador.getBateria() <= 0) gamePaused = true;
+
+            } else if (bossFight3Active) {
+                // ── PELEA CON JEFE 3: El Taxista ──
+                jugador.update(true, false);
+
+                if (boss3PassActive) {
+                    const float taxiSpeeds[4] = {14.0f, 15.0f, 16.0f, 17.0f};
+                    float chargeSpeed = taxiSpeeds[boss3PassCount < 4 ? boss3PassCount : 3];
+                    enemigos.moveTaxista(chargeSpeed);
+
+                    if (!boss3HitThisPass && jugador.checkCollision(enemigos.getTaxistaSprite())) {
+                        boss3HitCount++;
+                        boss3HitThisPass = true;
+                        jugador.applyBossDamage(12.0f);
+                    }
+
+                    if (enemigos.isTaxistaOffScreen()) {
+                        if (!boss3HitThisPass) boss3DodgedCount++;
+                        boss3PassActive  = false;
+                        boss3HitThisPass = false;
+                        boss3PassCount++;
+                        boss3WaitTimer = 60;
+                    }
+                } else {
+                    if (boss3WaitTimer > 0) {
+                        boss3WaitTimer--;
+                    } else if (boss3PassCount < 4) {
+                        enemigos.resetTaxistaForPass();
+                        boss3PassActive  = true;
+                        boss3HitThisPass = false;
+                    } else {
+                        bossFight3Active = false;
+                        bossFight3Done   = true;
+                        enemigos.dismissTaxista();
+                        jugador.setBossFightMode(false);
+                        jugador.setJumpCost(1.0f);
+                        jugador.setXPosition(20.f);
+                        powerUps.spawnVictoryBattery();
+                    }
+                }
+
+                bossText.setString(
+                    "JEFE FINAL: Taxista  |  Ataques: " + std::to_string(boss3PassCount) +
+                    "/4  |  Salta cuando se lance!"
                 );
                 bateriaText.setString("Bateria: " + std::to_string(static_cast<int>(jugador.getBateria())) + "%");
                 bateriaText.setFillColor(jugador.getBateria() < 30.f ? sf::Color::Red : sf::Color::Green);
@@ -281,7 +377,9 @@ int main() {
                 float speedFactor = jugador.getSpeedFactor() * baseSpeed;
                 calle.update(gameStarted, gamePaused, speedFactor);
                 ciudad.update(gameStarted, gamePaused, speedFactor);
-                bool spawnBaches = !(metrosRecorridos >= 330 && !bossFight1Done);
+                bool spawnBaches = !(metrosRecorridos >= 330 && !bossFight1Done)
+                                && !(metrosRecorridos >= 670 && !bossFight2Done)
+                                && !(metrosRecorridos >= 1060 && !bossFight3Done);
                 baches.update(gameStarted, gamePaused, speedFactor, spawnBaches);
                 auto respawnedPositions = baches.consumeRespawnPositions();
                 for (float obstacleX : respawnedPositions) {
@@ -322,7 +420,7 @@ int main() {
                 for (const auto& enemy : enemigos.getEnemies()) {
                     if (jugador.checkCollision(enemy)) collided = true;
                 }
-                if (chancla.isActiva() && jugador.checkCollision(chancla.getSprite())) {
+                if (chancla.isActiva() && jugador.checkCollisionRect(chancla.getHitbox())) {
                     collided = true;
                     chancla.esconder();
                 }
@@ -332,7 +430,7 @@ int main() {
                     if (collectedType == PowerUpType::Battery)
                         jugador.applyBatteryPickup(23.0f);
                     else
-                        jugador.applySpeedPickup(1.5f, 360);
+                        jugador.applySpeedPickup(1.35f, 280);
                 }
 
                 if (collided && collisionCooldown == 0) {
@@ -365,7 +463,7 @@ int main() {
 
         window.draw(distanciaText);
         window.draw(bateriaText);
-        if (bossFight1Active || bossFight2Active) window.draw(bossText);
+        if (bossFight1Active || bossFight2Active || bossFight3Active) window.draw(bossText);
         window.draw(speedText);
         window.draw(speedBarBg);
         window.draw(speedBarFill);

@@ -25,6 +25,7 @@ private:
     float animTimer = 0.f;
 
     bool bossFightMode = false;
+    float jumpCost = 1.0f;
 
 public:
     Motobici() : sprite(textura) {
@@ -72,7 +73,7 @@ public:
 
         if (spaceNow && spaceReleased) {
             spaceReleased = false;
-            float costo = bossFightMode ? 8.0f : 1.0f;
+            float costo = jumpCost;
             if (!isJumping) {
                 // Primer salto
                 velocidadY = fuerzaSalto;
@@ -150,11 +151,22 @@ public:
     }
 
     void setBossFightMode(bool active) { bossFightMode = active; }
+    void setJumpCost(float cost) { jumpCost = cost; }
+    void setXPosition(float x) { sprite.setPosition({x, sprite.getPosition().y}); }
 
     // ==========================================
 
     bool checkCollision(const sf::Sprite& obstacle) {
         return sprite.getGlobalBounds().findIntersection(obstacle.getGlobalBounds()).has_value();
+    }
+
+    // Colisión contra un rect arbitrario (para hitboxes reducidos)
+    bool checkCollisionRect(const sf::FloatRect& rect) const {
+        sf::FloatRect b = sprite.getGlobalBounds();
+        float mx = b.size.x * 0.15f;
+        float my = b.size.y * 0.15f;
+        sf::FloatRect hitbox{{b.position.x + mx, b.position.y + my}, {b.size.x * 0.7f, b.size.y * 0.7f}};
+        return hitbox.findIntersection(rect).has_value();
     }
 
     void reset() {
@@ -169,6 +181,7 @@ public:
         speedTimer    = 0;
         animTimer     = 0.f;
         bossFightMode = false;
+        jumpCost      = 1.0f;
     }
 
     float getBateria() const { return bateria; }
