@@ -15,8 +15,8 @@ Markdown
   - *El Taxista Furioso:* Te embiste agresivamente en el carril de los carros.
 
 ## 🎮 Controles
-- `Espacio` (Spacebar): Acelerar / Saltar (Consume batería extra por el torque).
-- `Flecha Abajo` (Down Arrow): Agacharse / Mejorar aerodinámica.
+- `Espacio`Saltar (Consume batería extra por el torque).
+- `Flecha izquierda` Avanzar 
 
 ## 📸 Capturas de Pantalla
 *(Añade tus capturas en la carpeta `screenshots` con estos nombres exactos)*
