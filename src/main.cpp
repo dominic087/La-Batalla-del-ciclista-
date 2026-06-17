@@ -444,7 +444,7 @@ int main() {
                             bool cw3 = chancla.isActiva();
                             chancla.update(true, false);
                             if (chancla.isActiva() && jugador.checkCollisionRect(chancla.getHitbox())) {
-                                jugador.applyBossDamage(20.0f);
+                                jugador.applyBossDamage(15.0f);
                                 chancla.esconder();
                             }
                             if (cw3 && !chancla.isActiva()) {
@@ -555,17 +555,16 @@ int main() {
                 bateriaText.setFillColor(jugador.getBateria() < 30.f ? sf::Color::Red : sf::Color::Green);
 
                 {
-                    int kmh = 20 + static_cast<int>(metrosRecorridos * 0.12f);
-                    if (kmh > 120) kmh = 120;
-                    float ratio = std::min(static_cast<float>(metrosRecorridos) / 900.f, 1.f);
-                    speedBarFill.setSize({ratio * 160.f, 18.f});
+                    float baseKmh = 20.f + std::min(static_cast<float>(metrosRecorridos) / 900.f, 1.f) * 100.f;
+                    int kmh = static_cast<int>(baseKmh * pedalFactor * jugador.getSpeedFactor());
+                    speedBarFill.setSize({pedalFactor * 160.f, 18.f});
                     if (jugador.getSpeedFactor() > 1.0f) {
                         speedText.setString("TURBO! " + std::to_string(kmh) + " km/h");
                         speedText.setFillColor(sf::Color(255, 200, 0));
                         speedBarFill.setFillColor(sf::Color(255, 200, 0, 220));
                     } else {
                         speedText.setString(std::to_string(kmh) + " km/h");
-                        speedText.setFillColor(sf::Color::White);
+                        speedText.setFillColor(pedalFactor > 0.f ? sf::Color::White : sf::Color(150, 150, 150));
                         speedBarFill.setFillColor(sf::Color(0, 200, 255, 200));
                     }
                 }
