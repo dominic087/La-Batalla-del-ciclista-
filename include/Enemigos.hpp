@@ -47,8 +47,8 @@ public:
         const sf::Vector2u groundSize = groundTexture.getSize();
         float roadScale = 800.f / static_cast<float>(groundSize.x);
         float groundY   = 400.f - static_cast<float>(groundRectHeight) * roadScale;
-        enemyY   = groundY - 45.f;
-        abuelitaY = groundY - 100.f;
+        enemyY    = groundY - 55.f;
+        abuelitaY = groundY - 95.f;
         taxistaY = groundY - 95.f;
 
         spriteAbuelita.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(texturaAbuelita.getSize().x),

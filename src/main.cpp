@@ -38,10 +38,24 @@ int main() {
     titleSprite.setScale({scaleX, scaleY});
     titleSprite.setPosition(sf::Vector2f((800.f - titleSprite.getGlobalBounds().size.x) / 2.f, (400.f - titleSprite.getGlobalBounds().size.y) / 2.f));
 
+    sf::Texture metaTexture1, metaTexture2;
+    if (!metaTexture1.loadFromFile("assets/image/meta_casa.png"))   return -1;
+    if (!metaTexture2.loadFromFile("assets/image/meta_parque.png")) return -1;
+    sf::Sprite metaSprite1(metaTexture1), metaSprite2(metaTexture2);
+    {
+        const sf::Vector2u ms1 = metaTexture1.getSize();
+        metaSprite1.setScale({800.f / static_cast<float>(ms1.x), 400.f / static_cast<float>(ms1.y)});
+        const sf::Vector2u ms2 = metaTexture2.getSize();
+        metaSprite2.setScale({800.f / static_cast<float>(ms2.x), 400.f / static_cast<float>(ms2.y)});
+    }
+    int   metaIndex   = 0;     // 0 = casa, 1 = parque, alterna en cada reinicio
+    float metaScrollX = 800.f; // posición X de la imagen de meta (empieza fuera a la derecha)
+
     sf::Music backgroundMusic;
     if (!backgroundMusic.openFromFile("assets/audio/melody.ogg")) {
         return -1;
     }
+    backgroundMusic.setLooping(true);
     backgroundMusic.setLoopPoints({sf::milliseconds(500), sf::seconds(2000)});
     backgroundMusic.play();
 
@@ -82,6 +96,22 @@ int main() {
         titleSprite.getPosition().y + titleSprite.getGlobalBounds().size.y + 25.f
     ));
 
+    sf::RectangleShape congratsBg({700.f, 90.f});
+    congratsBg.setFillColor(sf::Color(0, 0, 0, 190));
+    congratsBg.setPosition({50.f, 145.f});
+
+    sf::Text winTitleText(font);
+    winTitleText.setString("En hora buena, has llegado a tu destino!");
+    winTitleText.setCharacterSize(24);
+    winTitleText.setFillColor(sf::Color::Yellow);
+    winTitleText.setPosition({(800.f - winTitleText.getLocalBounds().size.x) / 2.f, 158.f});
+
+    sf::Text winSubText(font);
+    winSubText.setString("Presiona SPACE para jugar de nuevo");
+    winSubText.setCharacterSize(18);
+    winSubText.setFillColor(sf::Color::White);
+    winSubText.setPosition({(800.f - winSubText.getLocalBounds().size.x) / 2.f, 198.f});
+
     sf::Text bossText(font);
     bossText.setCharacterSize(18);
     bossText.setFillColor(sf::Color(255, 80, 80));
@@ -91,6 +121,8 @@ int main() {
     int scoreTick = 0;
     bool gameStarted = false;
     bool gamePaused  = false;
+    bool gameWon     = false;
+    float pedalFactor = 0.f; // 0 = detenido, 1 = velocidad completa
 
     // Estado de pelea con jefe 1 (Abuelita a 370m)
     bool bossFight1Active  = false;
@@ -136,11 +168,30 @@ int main() {
             window.draw(titleSprite);
             window.draw(startText);
             window.display();
-            
+
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
                 gameStarted = true;
             }
             continue;
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && gameWon) {
+            metaIndex   = 1 - metaIndex;
+            metaScrollX = 800.f;
+            gameWon = false; gameStarted = false; gamePaused = false;
+            metrosRecorridos = 0; scoreTick = 0;
+            jugador.reset(); jugador.setXPosition(20.f);
+            baches.reset(); enemigos.reset(); powerUps.reset(); chancla.esconder();
+            bossFight1Active = false; bossFight1Done = false;
+            bossChanclasFired = 0; bossChanclasDodged = 0; bossHitCount = 0; bossShootTimer = 0;
+            bossFight2Active = false; bossFight2Done = false;
+            boss2PassCount = 0; boss2DodgedCount = 0; boss2HitCount = 0; boss2WaitTimer = 0;
+            boss2PassActive = false; boss2HitThisPass = false;
+            bossFight3Active = false; bossFight3Done = false;
+            boss3PassCount = 0; boss3DodgedCount = 0; boss3HitCount = 0; boss3WaitTimer = 0;
+            boss3PassActive = false; boss3HitThisPass = false;
+            boss3SubPhase = 0; boss3SubTimer = 0; boss3ChanclaFired = false;
+            pedalFactor = 0.f;
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && gamePaused) {
@@ -152,6 +203,7 @@ int main() {
             powerUps.reset();
             chancla.esconder();
             metrosRecorridos  = 0;
+            metaScrollX       = 800.f;
             bossFight1Active  = false;
             bossFight1Done    = false;
             bossChanclasFired  = 0;
@@ -177,9 +229,10 @@ int main() {
             boss3SubPhase     = 0;
             boss3SubTimer     = 0;
             boss3ChanclaFired = false;
+            pedalFactor       = 0.f;
         }
 
-        if (gameStarted && !gamePaused) {
+        if (gameStarted && !gamePaused && !gameWon) {
 
             // Activar pelea con jefe 1 al llegar a 370m
             if (!bossFight1Done && !bossFight1Active && metrosRecorridos >= 370) {
@@ -190,7 +243,7 @@ int main() {
                 chancla.esconder();
                 enemigos.activateBossFight();
                 jugador.setBossFightMode(true);
-                jugador.setJumpCost(3.0f);
+                jugador.setJumpCost(1.0f);
             }
 
             // Activar pelea con jefe 2 al llegar a 770m
@@ -206,7 +259,7 @@ int main() {
                 enemigos.activateTaxistaBoss();
                 jugador.setBossFightMode(true);
                 jugador.setBossSlowDrain(true);
-                jugador.setJumpCost(8.0f);
+                jugador.setJumpCost(1.0f);
                 jugador.setXPosition(250.f);
             }
 
@@ -219,7 +272,7 @@ int main() {
                 boss2PassActive  = false;
                 enemigos.activateCiclistaBoss();
                 jugador.setBossFightMode(true);
-                jugador.setJumpCost(8.0f);
+                jugador.setJumpCost(1.0f);
                 jugador.setXPosition(250.f);
             }
 
@@ -461,13 +514,30 @@ int main() {
             } else {
                 // ── JUEGO NORMAL ──
                 jugador.update(gameStarted, gamePaused);
+
+                // Pedaleo: D o → mantiene el avance, soltar frena gradualmente
+                bool pedaleando = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)
+                               || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right);
+                if (pedaleando)
+                    pedalFactor = std::min(pedalFactor + 0.04f, 1.0f);
+                else
+                    pedalFactor = std::max(pedalFactor - 0.025f, 0.0f);
+
                 float baseSpeed   = 1.0f + std::min(static_cast<float>(metrosRecorridos) / 900.f, 1.f) * 0.8f;
-                float speedFactor = jugador.getSpeedFactor() * baseSpeed;
+                float speedFactor = jugador.getSpeedFactor() * baseSpeed * pedalFactor;
+
+                // Deslizar imagen de meta desde la derecha a partir de 1200m
+                if (bossFight3Done && metrosRecorridos >= 1200 && metaScrollX > 0.f) {
+                    metaScrollX -= 3.0f;
+                    if (metaScrollX < 0.f) metaScrollX = 0.f;
+                }
+
                 calle.update(gameStarted, gamePaused, speedFactor);
                 ciudad.update(gameStarted, gamePaused, speedFactor);
                 bool spawnBaches = !(metrosRecorridos >= 330 && !bossFight1Done)
                                 && !(metrosRecorridos >= 670 && !bossFight2Done)
-                                && !(metrosRecorridos >= 1060 && !bossFight3Done);
+                                && !(metrosRecorridos >= 1060 && !bossFight3Done)
+                                && !bossFight3Done;
                 baches.update(gameStarted, gamePaused, speedFactor, spawnBaches);
                 auto respawnedPositions = baches.consumeRespawnPositions();
                 for (float obstacleX : respawnedPositions) {
@@ -529,32 +599,49 @@ int main() {
 
                 if (jugador.getBateria() <= 0) gamePaused = true;
 
-                scoreTick++;
-                if (scoreTick >= 6) {
-                    metrosRecorridos++;
-                    scoreTick = 0;
+                // Llegar a 1360m con el jefe final vencido = victoria
+                if (bossFight3Done && metrosRecorridos >= 1250 && !gameWon)
+                    gameWon = true;
+
+                if (pedalFactor > 0.f) {
+                    scoreTick++;
+                    if (scoreTick >= 6) {
+                        metrosRecorridos++;
+                        scoreTick = 0;
+                    }
                 }
             }
         }
     
         window.clear(sf::Color(135, 206, 235));
-        
-        ciudad.draw(window);       
-        calle.draw(window);        
-        baches.draw(window);      
+
+        // Ciudad siempre visible; desde 1200m la imagen de meta entra deslizándose desde la derecha
+        ciudad.draw(window);
+        if (bossFight3Done && metrosRecorridos >= 1200) {
+            sf::Sprite& currentMeta = (metaIndex == 0 ? metaSprite1 : metaSprite2);
+            currentMeta.setPosition({metaScrollX, 0.f});
+            window.draw(currentMeta);
+        }
+
+        calle.draw(window);
+        baches.draw(window);
         enemigos.draw(window);
         powerUps.draw(window);
         chancla.draw(window);
-        
-        // ¡AQUÍ ESTÁ LA MAGIA! Por fin le decimos que dibuje tu motobici
-        jugador.draw(window); 
+        jugador.draw(window);
 
-        window.draw(distanciaText);
-        window.draw(bateriaText);
-        if (bossFight1Active || bossFight2Active || bossFight3Active) window.draw(bossText);
-        window.draw(speedText);
-        window.draw(speedBarBg);
-        window.draw(speedBarFill);
+        if (!gameWon) {
+            window.draw(distanciaText);
+            window.draw(bateriaText);
+            if (bossFight1Active || bossFight2Active || bossFight3Active) window.draw(bossText);
+            window.draw(speedText);
+            window.draw(speedBarBg);
+            window.draw(speedBarFill);
+        } else {
+            window.draw(congratsBg);
+            window.draw(winTitleText);
+            window.draw(winSubText);
+        }
 
         window.display();
     }
