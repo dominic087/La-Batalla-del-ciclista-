@@ -23,6 +23,7 @@ private:
 
     float velocidad  = 4.0f;
     float enemyY     = 0.f;
+    float abuelitaY  = 0.f;
     float taxistaY   = 0.f;
 
     int shootTimer = 0;
@@ -47,6 +48,7 @@ public:
         float roadScale = 800.f / static_cast<float>(groundSize.x);
         float groundY   = 400.f - static_cast<float>(groundRectHeight) * roadScale;
         enemyY   = groundY - 45.f;
+        abuelitaY = groundY - 100.f;
         taxistaY = groundY - 95.f;
 
         spriteAbuelita.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(texturaAbuelita.getSize().x),
@@ -55,7 +57,7 @@ public:
                                                          static_cast<int>(texturaGhost.getSize().y)}));
         spriteTaxista.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(texturaTaxista.getSize().x),
                                                            static_cast<int>(texturaTaxista.getSize().y)}));
-        spriteAbuelita.setScale({0.28f, 0.28f});
+        spriteAbuelita.setScale({0.31f, 0.31f});
         spriteGhost.setScale({0.35f, 0.35f});
         spriteTaxista.setScale({0.48f, 0.48f});
 
@@ -66,7 +68,7 @@ public:
         if (!gameStarted || gamePaused) return;
 
         if (!abuelitaAparecio && distancia >= 370) {
-            spriteAbuelita.setPosition({900.f, enemyY});
+            spriteAbuelita.setPosition({900.f, abuelitaY});
             abuelitaActiva   = true;
             abuelitaAparecio = true;
         }
@@ -79,7 +81,7 @@ public:
         if (abuelitaActiva) {
             spriteAbuelita.move({-velocidad * speedFactor, 0.f});
             if (spriteAbuelita.getPosition().x < -100.f) {
-                spriteAbuelita.setPosition({900.f, enemyY});
+                spriteAbuelita.setPosition({900.f, abuelitaY});
                 shootTimer = 0;
             } else {
                 shootTimer++;
@@ -135,7 +137,7 @@ public:
     void activateBossFight() {
         abuelitaActiva   = true;
         abuelitaAparecio = true;
-        spriteAbuelita.setPosition({650.f, enemyY});
+        spriteAbuelita.setPosition({650.f, abuelitaY});
     }
 
     void dismissAbuelita() { abuelitaActiva = false; }

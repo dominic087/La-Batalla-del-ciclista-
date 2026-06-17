@@ -355,7 +355,7 @@ int main() {
                         boss3Msg = "Cuidado! Va a acelerar!";
                         if (boss3SubPhase == 0) {
                             enemigos.moveTaxista(2.5f);
-                            if (enemigos.getTaxistaPos().x <= 480.f) {
+                            if (enemigos.getTaxistaPos().x <= 580.f) {
                                 boss3SubPhase = 1;
                                 boss3SubTimer = 180; // 3 segundos parado
                             }
@@ -376,23 +376,36 @@ int main() {
                         break;
                     }
 
-                    case 2: { // Lanza una chancla
-                        boss3Msg = "Lanzando objeto! Salta!";
-                        if (!boss3ChanclaFired) {
+                    case 2: { // Lanza 3 chanclas seguidas
+                        boss3Msg = "Lanzando objetos! Salta!";
+                        const int TOTAL_CHANCLAS_TAXI = 3;
+                        if (boss3SubTimer > 0) {
+                            // Espera entre chanclas
+                            boss3SubTimer--;
+                            if (boss3SubTimer == 0) boss3ChanclaFired = false;
+                        } else if (!boss3ChanclaFired) {
                             chancla.lanzar(enemigos.getTaxistaPos().x, enemigos.getTaxistaPos().y);
                             boss3ChanclaFired = true;
                         } else {
-                            bool chanclaWasActiva3 = chancla.isActiva();
+                            // Chancla en vuelo
+                            bool cw3 = chancla.isActiva();
                             chancla.update(true, false);
                             if (chancla.isActiva() && jugador.checkCollisionRect(chancla.getHitbox())) {
                                 jugador.applyBossDamage(12.0f);
                                 chancla.esconder();
                             }
-                            if (chanclaWasActiva3 && !chancla.isActiva()) {
-                                boss3PassActive   = false;
-                                boss3ChanclaFired = false;
-                                boss3PassCount++;
-                                boss3WaitTimer = 90;
+                            if (cw3 && !chancla.isActiva()) {
+                                boss3SubPhase++;
+                                if (boss3SubPhase < TOTAL_CHANCLAS_TAXI) {
+                                    boss3SubTimer = 55; // ~1s entre chanclas
+                                } else {
+                                    // Terminaron las 3 chanclas
+                                    boss3PassActive   = false;
+                                    boss3ChanclaFired = false;
+                                    boss3SubPhase     = 0;
+                                    boss3PassCount++;
+                                    boss3WaitTimer    = 90;
+                                }
                             }
                         }
                         break;
