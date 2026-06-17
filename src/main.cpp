@@ -336,7 +336,7 @@ int main() {
 
                 if (boss2PassActive) {
                     // 3 pasadas: 12.0, 12.8, 13.8 px/frame
-                    const float chargeSpeeds[3] = {12.0f, 12.8f, 13.8f};
+                    const float chargeSpeeds[3] = {12.2f, 13.0f, 14.0f};
                     float chargeSpeed = chargeSpeeds[boss2PassCount < 3 ? boss2PassCount : 2];
                     enemigos.moveCiclista(chargeSpeed);
 
@@ -444,7 +444,7 @@ int main() {
                             bool cw3 = chancla.isActiva();
                             chancla.update(true, false);
                             if (chancla.isActiva() && jugador.checkCollisionRect(chancla.getHitbox())) {
-                                jugador.applyBossDamage(12.0f);
+                                jugador.applyBossDamage(20.0f);
                                 chancla.esconder();
                             }
                             if (cw3 && !chancla.isActiva()) {
@@ -469,7 +469,7 @@ int main() {
                         enemigos.moveTaxista(23.0f);
                         if (!boss3HitThisPass && jugador.checkCollision(enemigos.getTaxistaSprite())) {
                             boss3HitCount++; boss3HitThisPass = true;
-                            jugador.applyBossDamage(12.0f);
+                            jugador.applyBossDamage(25.0f);
                         }
                         if (enemigos.isTaxistaOffScreen()) {
                             boss3PassActive = false; boss3HitThisPass = false;
