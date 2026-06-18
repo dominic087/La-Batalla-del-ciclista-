@@ -1,4 +1,4 @@
-ame: Publicar en Galería CETUS
+name: Publicar en Galería CETUS
 
 on:
   push:
